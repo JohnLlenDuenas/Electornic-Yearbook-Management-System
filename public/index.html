@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>E - Yearbook Management System</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <link href="assets/img/mlndy logo.png" rel="icon">
+  <link href="assets/img/mlndy logo.png" rel="apple-touch-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-Rk4kgbc4eEkdaD6S6ZjPhxnU9HWyqeqeUQ+Rz/z6z3qmWTfaTlqmKAzzPXZ+6u2oUlVbMZIuSJtQ9nH19p0x2Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link href="assets/css/style.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+</head>
+
+<body>
+
+
+
+  <header id="header" class="fixed-top">
+    <div class="container d-flex align-items-center justify-content-between">
+
+      <h1 class="logo"><img src="assets/img/mlndy logo.png"><a href="index.html" style="font-size: 75%;">     MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a></h1>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+          
+          <li><a class="nav-link " href="" data-toggle="modal" data-target="#loginModal">Login</a></li>
+          <li class="dropdown"><a href="#"><span>Socials</span> <i class="bi bi-chevron-down"></i></a>
+            <ul>
+              <li><a href="https://www.facebook.com/MNHSMarikinaCity">Facebook</a></li>
+
+              <li><a href="mailto:mnhs.marikina@deped.gov.ph">Mail</a></li>
+            </ul>
+          </li>
+          <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav>
+
+    </div>
+  </header>
+
+
+  <div id="hero" class="hero route bg-image" style="background-image: url(assets/img/hero-bg.jpg)">
+    <div class="overlay-itro"></div>
+    <div class="hero-content display-table">
+      <div class="table-cell">
+        <div class="container">
+          <h6 class="hero-title mb-4" >Welcome to Malanday National High School Yearbook Gallery</h6>
+          <p class="hero-subtitle"><span class="typed" data-typed-items="Explore and relive the cherished moments of our journey together, Dive into the highlights celebrate our achievements and enjoy the memories we've created."></span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true" style="padding-top: 10%;">
+    <div class="modal-dialog">
+        <div class="modal-content box-shadow-full">
+            <div class="modal-header">
+              <h5 class="title-left">
+                Login
+              </h5>
+                <button type="button" class="button button-rouded"  data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                  <div class="col-md-12 mb-3" >
+                    <div class="form-group">
+                      <label for="email"><h4>Student Number</h4></label>
+                      <input type="number" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter Student Number" required>
+                    </div>
+                  </div>
+                  <div class="col-md-12 mb-3">
+                    <div class="form-group">
+                        <label for="password"><h4>Password</h4></label>
+                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                    </div>
+                  </div>
+                  <div class="col-md-12 mb-3">
+                    <div class="grid">
+                      <div>
+                        <button type="submit" class="button button-a button-big button-rouded" onclick="window.location.href = 'consent/index.html'">Login</button>
+                      </div>
+                      <div >
+                        <a href="mailto:mnhs.marikina@deped.gov.ph"> Reset Password</a>
+                      </div>
+                    </div>
+                     
+                  </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <main id="main">
+
+    <section id="about" class="about-mf sect-pt4 route">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="box-shadow-full">
+              <div class="grid">
+                <div>
+                  <img src="assets/img/testimonial-2.jpg"   width="75%"  alt="">
+                  
+                </div>
+                <div>
+                  <h2 >
+                    Welcome Message from the Principal<br><br>
+                  </h2>
+                  <p class="lead">
+                    Welcome to Malanday National High School, “THE HOME OF TECHNOPRENEURS” and the only public 
+                    secondary TECH-VOC school in the Division of Marikina City.  As  a secondary TECH-VOC school
+                    , we take pride of our TVE teachers who are NC Passers and TM Holders in different field of 
+                    specialization.  We envision our school to be a nurturing TECH-VOC school which prepares 
+                    students for productive life and for college education.  Thus, we are geared at preparing 
+                    our learners to face the rigors of college education and more importantly, ready to face the 
+                    actual challenges of the workplace.
+                  </p>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  
+    <section id="contact" class="paralax-mf footer-paralax bg-image sect-mt4 route" style="background-image: url(assets/img/hero-bg.jpg)">
+      <div class="overlay-mf"></div>
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="contact-mf">
+              <div id="contact" class="box-shadow-full">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="title-box-2">
+                      <h5 class="title-left">
+                        Send Message Us
+                      </h5>
+                    </div>
+                    <div>
+                      <form action="forms/send_email.php" method="post" role="form" class="php-email-form">
+                        <div class="row">
+                          <div class="col-md-12 mb-3">
+                            <div class="form-group">
+                              <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" required>
+                            </div>
+                          </div>
+                          <div class="col-md-12 mb-3">
+                            <div class="form-group">
+                              <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" required>
+                            </div>
+                          </div>
+                          <div class="col-md-12 mb-3">
+                            <div class="form-group">
+                              <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" required>
+                            </div>
+                          </div>
+                          <div class="col-md-12">
+                            <div class="form-group">
+                              <textarea class="form-control" name="message" rows="5" placeholder="Message" required></textarea>
+                            </div>
+                          </div>
+                          <div class="col-md-12 text-center my-3">
+                            <div class="loading">Loading</div>
+                            <div class="error-message"></div>
+                            <div class="sent-message">Your message has been sent. Thank you!</div>
+                          </div>
+                          <div class="col-md-12 text-center">
+                            <button type="submit" class="button button-a button-big button-rouded">Send Message</button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="title-box-2 pt-4 pt-md-0">
+                      <h5 class="title-left">
+                        Get in Touch
+                      </h5>
+                    </div>
+                    <div class="more-info">
+                      <p class="lead">
+                        If the website has a problem contact us.
+                      </p>
+                      <ul class="list-ico">
+                        <li><span class="bi bi-geo-alt"></span>Malanday, Marikina City, 1805 Philippines</li>
+                        <li><span class="bi bi-phone"></span>(02)-942-63-26</li>
+                        <li><a href="mailto:mnhs.marikina@deped.gov.ph"><span class="bi bi-envelope"></span>mnhs.marikina@deped.gov.ph</a></li>
+                      </ul>
+                    </div>
+                    <div class="socials">
+                      <ul>
+                        <li><a href="https://www.facebook.com/MNHSMarikinaCity"><span class="ico-circle"><i class="bi bi-facebook"></i></span></a></li>
+                        <li><a href="mailto:mnhs.marikina@deped.gov.ph"><span class="ico-circle"><i class="bi bi-envelope"></i></span></a></li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="copyright-box">
+            <p class="copyright">&copy; Copyright <strong>Llen</strong>. All Rights Reserved</p>
+            <div class="credits">
+             
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    $(function () {
+        $('.php-email-form').on('submit', function (e) {
+            e.preventDefault();
+            
+            var form = $(this);
+            var formData = form.serialize();
+            
+            $.ajax({
+                type: 'POST',
+                url: form.attr('action'),
+                data: formData,
+                beforeSend: function () {
+                    form.find('.loading').show();
+                    form.find('.error-message').hide();
+                    form.find('.sent-message').hide();
+                },
+                success: function (response) {
+                    form.find('.loading').hide();
+                    form.find('.sent-message').show();
+                },
+                error: function (response) {
+                    form.find('.loading').hide();
+                    form.find('.error-message').show().text(response.responseText);
+                }
+            });
+        });
+    });
+    </script>
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="assets/vendor/php-email-form/validate.js"></script>
+  <script src="assets/vendor/purecounter/purecounter.js"></script>
+  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="assets/vendor/typed.js/typed.min.js"></script>
+
+  <script src="assets/js/main.js"></script>
+
+</body>
+
+</html>

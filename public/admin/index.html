@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>E - Yearbook Management System</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <link href="../assets/img/mlndy logo.png" rel="icon">
+  <link href="../assets/img/mlndy logo.png" rel="apple-touch-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-Rk4kgbc4eEkdaD6S6ZjPhxnU9HWyqeqeUQ+Rz/z6z3qmWTfaTlqmKAzzPXZ+6u2oUlVbMZIuSJtQ9nH19p0x2Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link href="../assets/css/style.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <style>
+    #mobile-blocker{
+  display: none;
+}
+@media only screen and (max-width: 768px) {
+  body {
+    overflow: hidden;
+  }
+
+  #header,#sidebar,#createAccModal,#content {
+    display: none;
+  }
+
+  #mobile-blocker {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: rgb(255, 255, 255);
+    text-align: center;
+    padding-top: 200px;
+    z-index: 2000;
+  }
+}
+  </style>
+  
+</head>
+
+<body id="body-content">
+
+  <header id="header" style="background-color: black;">
+    <div class="container d-flex align-items-center justify-content-between">
+      <button id="toggle-button">☰</button>
+      <h1 class="logo"><img src="../assets/img/mlndy logo.png"><a href="#" style="font-size: 75%;"> MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a></h1>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a class="nav-link " href="" data-toggle="modal" data-target="#createAccModal">Create Account</a></li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav>
+      <h1 class="logo"><a href="" style="font-size: 50%;">Admin</a></h1>
+    </div>
+  </header>
+
+  <div id="sidebar">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link active" href="#">Dashboard</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Yearbook</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Students</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Committee</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Settings</a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="modal fade" id="createAccModal" tabindex="-1" aria-labelledby="createAccModalLabel" aria-hidden="true" style="padding-top: 10%;">
+    <div class="modal-dialog">
+      <div class="modal-content box-shadow-full">
+        <div class="modal-header">
+          <h5 class="title-left">Create Account</h5>
+          <button type="button" class="button button-rouded" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="createAccForm">
+            <div class="col-md-12 mb-3">
+              <div class="form-group">
+                <label for="email"><h4>Student Number</h4></label>
+                <input type="number" class="form-control" id="student_number" placeholder="Enter Student Number" required>
+              </div>
+            </div>
+            <div class="col-md-12 mb-3">
+              <div class="form-group">
+                <label for="email"><h4>Email</h4></label>
+                <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter Email" required>
+              </div>
+            </div>
+            <div class="col-md-12 mb-3">
+              <div class="form-group">
+                <label for="password"><h4>Password</h4></label>
+                <input type="password" class="form-control" id="password" placeholder="Password" required>
+              </div>
+            </div>
+            <div class="col-md-12 mb-3">
+              <div class="form-group">
+                <label for="acctype"><h4>Account Type</h4></label>
+                <select id="acctype" class="form-control" name="account_type" placeholder="Select Account Type">
+                  <option value="student">Student</option>
+                  <option value="comittee">Comittee</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-12 mb-3">
+              <div class="grid">
+                <div>
+                  <button type="submit" class="button button-a button-big button-rouded" onclick="window.location.href = '#'">Create</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+    <main id="main">
+      <section id="about" class="about-mf sect-pt4 route">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-12">
+              <div class="box-shadow-full">
+                <div class="grid">
+                  <div></div>
+                  <div>
+                    <h2></h2>
+                    <p class="lead">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean in nibh tristique, convallis ligula nec, egestas elit. Mauris nibh nisi, rutrum ut laoreet quis, porttitor sed nunc. Vivamus sem urna, congue tristique hendrerit in, auctor in magna. Ut lacus risus, sagittis quis lobortis id, tempus sit amet lacus. Etiam blandit metus est, non suscipit nisi eleifend dictum. Donec accumsan nunc fermentum consectetur mollis. Integer in orci rhoncus, rhoncus urna at, semper lacus. Phasellus gravida, lacus in varius venenatis, libero justo aliquet nibh, eget blandit turpis libero nec nisl. Nullam hendrerit porttitor ex sit amet finibus. Vestibulum porta risus vitae sapien commodo vulputate.
+                      <br>Nullam ultrices tellus eu turpis venenatis, sed cursus enim maximus. Morbi in dignissim mauris. Nam elementum turpis vel sapien vehicula, sed iaculis lacus tempus. Aenean posuere pulvinar purus et consequat. Vivamus a augue arcu. Nam eleifend odio nunc, facilisis semper felis blandit sed. In hac habitasse platea dictumst. Nam pretium eget mi quis blandit. Mauris vehicula, nisi vel faucibus ultrices, felis risus rutrum turpis, vel placerat felis mi vel enim. Ut hendrerit volutpat mollis. Maecenas porttitor lorem eros, in volutpat ex blandit pellentesque. Nunc lobortis, lectus eu volutpat volutpat, eros dui scelerisque felis, id faucibus ligula ligula id nunc. Suspendisse dapibus tincidunt arcu eu mattis. Phasellus viverra libero nec eros cursus semper. Suspendisse posuere maximus nulla, varius rutrum urna laoreet nec. Vivamus sodales pulvinar magna nec mollis.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="mobile-blocker">
+    <h1 style="color: white;">Access Denied</h1>
+    <p>This page is only accessible in desktop and not on mobile devices.</p>
+  </div>
+
+  <script>
+    document.getElementById('toggle-button').addEventListener('click', function () {
+      document.getElementById('sidebar').classList.toggle('retracted');
+      document.getElementById('content').classList.toggle('retracted');
+    });
+  </script>
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="../assets/vendor/php-email-form/validate.js"></script>
+  <script src="../assets/vendor/purecounter/purecounter.js"></script>
+  <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="../assets/vendor/typed.js/typed.min.js"></script>
+  <script src="../assets/js/main.js"></script>
+
+</body>
+
+</html>

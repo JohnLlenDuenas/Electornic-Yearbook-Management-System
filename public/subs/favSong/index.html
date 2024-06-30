@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>•</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Montserrat:800'><link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<main class="wrapper">
+	<svg class="svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+		<defs>
+			<filter id="text">
+				<feImage xlink:href="me.png" x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMaxYMin slice" result="bg"/>
+				<feComposite operator="in" in="bg" in2="SourceGraphic" result="text"/>
+				<feOffset result="offOut" in="text" dx="2" dy="2" />
+				<feColorMatrix result="matrixOut" in="offOut" type="matrix"
+      values="0.2 0 0 0 0 0 0.2 0 0 0 0 0 0.2 0 0 0 0 0 .5 0" />
+				<feGaussianBlur result="blurOut" in="matrixOut" stdDeviation="2" />
+				<feBlend in="text" in2="blurOut" mode="normal" />
+			</filter>
+			<filter id="image">
+				<feImage xlink:href="me.png" x="0" y="0" width="100%" height="100%" preserveAspectRatio="xMaxYMin slice" result="bg2"/>
+			</filter>
+		</defs>
+	</svg>
+
+	<div class="flood"></div>
+	<h1 class="text">
+    <span>I see no changes</span>
+    <span>wake up in the morning</span>
+    <span>and I ask myself</span>
+    <span>"Is life worth living?</span>
+    <span>Should I blast myself?"</span>
+    <span>I'm tired of being poor and,</span>
+    <span>even worse, I'm black</span>
+    <span>My stomach hurts so </span>
+    <span>I'm looking for a purse to snatch</span>
+    <span>Cops give a damn about a negro</span>
+    <span>Pull the trigger,</span>
+    <span>kill a nigga, he's a hero</span>
+    <span>Changes - 2Pac</span> 
+	</h1>
+</main>
+<!-- partial -->
+  
+</body>
+</html>

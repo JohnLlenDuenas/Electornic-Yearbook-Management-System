@@ -1,0 +1,55 @@
+html {
+  height: 100%;
+  height: 100vh;
+  display: flex;
+}
+
+body {
+  margin: auto;
+  background: #000;
+  font-family: "Montserrat", sans-serif;
+}
+
+.wrapper {
+  width: 55em;
+  position: relative;
+  overflow: hidden;
+}
+
+.svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.text {
+  position: relative;
+  width: 50%;
+  color: #1e1e1e;
+  font-size: 2.3rem;
+  text-align: right;
+  filter: url(#text);
+  transition: background 0.25s ease-in;
+}
+.text span {
+  display: block;
+  cursor: pointer;
+  transition: background 0.2s ease-in;
+}
+.text span:hover {
+  background: orange;
+}
+
+.flood {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  filter: url(#image);
+  -webkit-clip-path: polygon(52% 0, 100% 0%, 100% 100%, 52% 100%);
+  clip-path: polygon(52% 0, 100% 0%, 100% 100%, 52% 100%);
+}
+.flood:hover + .text {
+  background: teal;
+}

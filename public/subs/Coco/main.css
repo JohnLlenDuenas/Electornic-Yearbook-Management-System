@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:300,400,700');
+body{
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: #000000;
+    overflow: hidden;
+}
+p{
+    font-size: 95%;
+    line-height: 95%;
+    background: url(me.jpg);
+    background-attachment:fixed;
+    background-size: 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0);
+}
+.apc{
+    font-size: 118%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: rgba(66, 169, 187, .5);
+}
+
+@media screen and (max-width: 1024px) {
+
+    p{
+        font-size: 95%;
+        line-height: 95%;
+        background: url(me2.jpg);
+        background-attachment:fixed;
+        background-size: 100%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .apc{
+        font-size: 95%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .apc2{
+        font-size: 120%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: rgba(66, 169, 187, .5);
+    }
+
+}
+@media screen and (max-width: 768px) {
+
+    p{
+        font-size: 90%;
+        line-height: 90%;
+        background: url(me2.jpg);
+        background-attachment:fixed;
+        background-size: 100%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .apc{
+        font-size: 90%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .ai{
+        font-size: 118%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: rgba(66, 169, 187, .5);
+    }
+    .ax{
+        font-size: 75%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .ap{
+        font-size: 75%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+
+}
+@media screen and (max-width: 414px) {
+
+    p{
+        font-size: 75%;
+        line-height: 75%;
+        background: url(me2.jpg);
+        background-attachment:fixed;
+        background-size: 124%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .apc{
+        font-size: 75%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .ai{
+        font-size: 75%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .ax{
+        font-size: 75%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .ap{
+        font-size: 120%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: rgba(66, 169, 187, .5);
+    }
+}
+@media only screen and (max-width: 375px) {
+
+    p{
+        font-size: 75%;
+        line-height: 75%;
+        background: url(me2.jpg);
+        background-attachment:fixed;
+        background-size: 150%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .ai{
+        font-size: 75%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .apc{
+        font-size: 75%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .ap{
+        font-size: 75%;
+        -webkit-text-fill-color: rgba(255, 255, 255, 0);
+    }
+    .ax{
+        font-size: 118%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: rgba(66, 169, 187, .5);
+    }
+
+}
