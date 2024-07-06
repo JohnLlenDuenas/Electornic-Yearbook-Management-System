@@ -128,7 +128,7 @@
             <div class="col-md-12 mb-3">
               <div class="grid">
                 <div>
-                  <button type="submit" class="button button-a button-big button-rouded" onclick="window.location.href = '#'">Create</button>
+                  <button type="button" class="button button-a button-big button-rouded" id="createAccountButton">Create</button>
                 </div>
               </div>
             </div>
@@ -172,6 +172,37 @@
     document.getElementById('toggle-button').addEventListener('click', function () {
       document.getElementById('sidebar').classList.toggle('retracted');
       document.getElementById('content').classList.toggle('retracted');
+    });
+    $(document).ready(function () {
+      $('#toggle-button').click(function () {
+        $('#sidebar').toggleClass('open');
+      });
+
+      $('#createAccountButton').click(function () {
+        const studentNumber = $('#student_number').val();
+        const email = $('#email').val();
+        const password = $('#password').val();
+        const accountType = $('#acctype').val();
+
+        $.ajax({
+          url: '/create-account',
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            studentNumber: studentNumber,
+            email: email,
+            password: password,
+            accountType: accountType
+          }),
+          success: function (response) {
+            alert(response.message);
+            $('#createAccForm')[0].reset(); // Clear the form fields
+          },
+          error: function (error) {
+            alert('Error creating account');
+          }
+        });
+      });
     });
   </script>
 
