@@ -54,6 +54,7 @@ const createUniqueStudentNumberIndex = async () => {
     await client.connect();
     const database = client.db('EYBMS_DB');
     const users = database.collection('users');
+    const consent = database.collection('consent');
     await users.createIndex({ studentNumber: 1 }, { unique: true });
     console.log("Unique index created on studentNumber");
   } catch (error) {
@@ -65,6 +66,54 @@ const createUniqueStudentNumberIndex = async () => {
 
 // Call createUniqueStudentNumberIndex function to create the unique index
 createUniqueStudentNumberIndex();
+
+function getCurrentDateTime() {
+  const now = new Date();
+  const date = now.toLocaleDateString();
+  const time = now.toLocaleTimeString();
+  return `${date} ${time}`;
+}
+
+//Consent fill RouteCollection
+app.post('/consent-fill', async (req, res) => {
+  const dateTime = getCurrentDateTime();
+  const { student_name,
+    grade,
+    section,
+    parentguardian_name,
+    relationship,
+    contactno,
+    formStatus} = req.body;
+
+  try {
+    // Insert the consent filled 
+    await client.connect();
+    const database = client.db('EYBMS_DB');
+    const consent = database.collection('consent');
+    const consentData = {
+      student_Name:student_name,
+      grade:grade,
+      section:section,
+      parentGuardian_Name:parentguardian_name,
+      relationship:relationship,
+      contactNo:contactno,
+      form_Status:formStatus,
+      date_and_Time_Filled:dateTime
+    };
+    await consent.insertOne(consentData);
+    res.status(201).json({ message: 'Consent Filled successfully' });
+  } catch (error) {
+    if (error.code === 11000) {
+      res.status(400).json({ message: 'Error Saving Consent' });
+    } else {
+      console.error("Saving Consent:", error);
+      res.status(500).json({ message: 'Saving Consent' });
+    }
+  } finally {
+    await client.close();
+  }
+});
+
 
 // Create account route
 app.post('/create-account', async (req, res) => {
@@ -156,6 +205,7 @@ app.post('/logout', (req, res) => {
       return res.status(500).json({ message: 'Error logging out' });
     }
     res.status(200).json({ message: 'Logout successful' });
+    redirectUrl = '/index.html';
   });
 });
 

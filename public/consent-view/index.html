@@ -66,82 +66,68 @@
                         <br><br><strong>Release of Liability:</strong> I release Malanday National High School and its representatives from any liability that may arise from the use of my child’s photographs as described in this consent form.
                         <br><br>Thank you for your cooperation and support in enhancing our school’s yearbook experience.
                         <br><br>
-                        <div style="padding: 1rem;">
-                          <div class="col-md-12 text-center">
-                            <form method="post" role="form" id="consentForm">
-                              <div class="grid" >
-                                <div >
-                                  <h1 class="lead"><strong>Student Information</strong></h1>
-                                  <div class="row" style="padding: 5%;">
-                                    <div class="col-md-12 mb-3">
-                                      <div class="form-group">
-                                        <input type="text" name="name" class="form-control" id="student_name" placeholder="Student's Name" required>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-12 mb-3">
-                                      <div class="form-group">
-                                        <input type="text" class="form-control" name="grade" id="grade" placeholder="Student's Grade Level" required>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-12 mb-3">
-                                      <div class="form-group">
-                                        <input type="text" class="form-control" name="section" id="section" placeholder="Student's Section" required>
-                                      </div>
-                                    </div>
-                                    
+                        <form action="forms/send_email.php" method="post" role="form" class="php-email-form">
+                          <div class="grid" >
+                            <div >
+                              <h1 class="lead"><strong>Student Information</strong></h1>
+                              <div class="row" style="padding: 5%;">
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <input type="text" name="name" class="form-control" id="student_name" placeholder="Student's Name" required>
                                   </div>
                                 </div>
-                                <div>
-                                  <h1 class="lead"><strong>Parent/Guardian Information</strong></h1>
-                                  <div class="row" style="padding: 5%;">
-                                    <div class="col-md-12 mb-3">
-                                      <div class="form-group">
-                                        <input type="text" name="name" class="form-control" id="parentguardian_name" placeholder="Parent/Guardian Name" required>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-12 mb-3">
-                                      <div class="form-group">
-                                        <input type="text" class="form-control" name="relationship" id="relationship" placeholder="Relationship to Student" required>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-12 mb-3">
-                                      <div class="form-group">
-                                        <input type="tel" class="form-control" name="contactno" id="contactno" placeholder="Contact Number" required>
-                                      </div>
-                                    </div>
-                                    
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <input type="text" class="form-control" name="grade" id="grade" placeholder="Student's Grade Level" required>
+                                  </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <input type="text" class="form-control" name="section" id="section" placeholder="Student's Section" required>
                                   </div>
                                 </div>
                                 
                               </div>
-                              <div class="col-md-12 text-center">
-                                <h6>Select if you Accept or Reject the Consent</h6>
-                              </div>
-                              <div class="grid" >
-                                <div style="padding: 1rem;">
-                                  <div class="col-md-12 text-center">
-                                    <input type="radio" class="button button-a button-big button-rouded" name="acceptedOrRejected" value="Accepted" required>      Accept</input>
+                            </div>
+                            <div>
+                              <h1 class="lead"><strong>Parent/Guardian Information</strong></h1>
+                              <div class="row" style="padding: 5%;">
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <input type="text" name="name" class="form-control" id="parentguardian_name" placeholder="Parent/Guardian Name" required>
                                   </div>
                                 </div>
-                                <div style="padding: 1rem;">
-                                  <div class="col-md-12 text-center">
-                                    <input type="radio" class="button button-a button-big button-rouded" name="acceptedOrRejected" value="Rejected"required>      Reject</input>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <input type="text" class="form-control" name="relationship" id="relationship" placeholder="Relationship to Student" required>
                                   </div>
                                 </div>
-                              </div>
-                              <div style="padding: 1rem;">
-                                <div class="col-md-12 text-center">
-                                  <button type="submit" class="button button-a button-big button-rouded" >Submit</button>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <input type="tel" class="form-control" name="contactno" id="contactno" placeholder="Contact Number" required>
+                                  </div>
                                 </div>
+                                
                               </div>
-                              <div style="padding: 1rem;">
-                                <div class="col-md-12 text-center">
-                                  <div id="ConsentMessage"></div>
-                                </div>
-                              </div>
-                            </form>
+                            </div>
+                            
                           </div>
-                        </div>
+                          <div class="grid" >
+                            <div style="padding: 1rem;">
+                              <div class="col-md-12 text-center">
+                                <button type="submit" class="button button-a button-big button-rouded" onclick="window.location.href = '../admin/index.html'">Accept</button>
+                              </div>
+                            </div>
+                            <div style="padding: 1rem;">
+                              <div class="col-md-12 text-center">
+                                <button type="submit" class="button button-a button-big button-rouded" onclick="window.location.href = '../admin/index.html'">Reject</button>
+                              </div>
+                            </div>
+
+                          </div>
+                          
+                        </form>
+                        
                       </h1>
                     </div>
                   </div>
@@ -155,47 +141,7 @@
   </div>
 </div>
 
-<script>
-  $(document).ready(function() {
-    $('#consentForm').submit(function(event) {
-      event.preventDefault();
-      var student_name = $('#student_name').val();
-      var grade = $('#grade').val();
-      var section = $('#section').val();
-      var parentguardian_name = $('#parentguardian_name').val();
-      var relationship = $('#relationship').val();
-      var contactno = $('#contactno').val();
-      var formStatus;
-      const selection = document.getElementsByName('acceptedOrRejected');
-      for (let option of selection) {
-                if (option.checked) {
-                    formStatus = option.value;
-                    break;
-                }
-            }
-      $.ajax({
-          type: 'POST',
-          url: '/consent-fill',
-          data: JSON.stringify({
-            student_name: student_name,
-            grade: grade,
-            section: section,
-            parentguardian_name: parentguardian_name,
-            relationship: relationship,
-            contactno: contactno,
-            formStatus: formStatus
-          }),
-          contentType: 'application/json',
-          success: function(response) {
-            $('#consentForm').html('<div class="alert alert-success"><h1>Consent Successfully Submitted Thankyou</h1></div>');
-          },
-          error: function(xhr, status, error) {
-            $('#ConsentMessage').html('<div class="alert alert-danger">An error occurred: ' + xhr.responseText + '</div>');
-          }
-        });
-    });
-  });
-</script>
+
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="../assets/vendor/php-email-form/validate.js"></script>
