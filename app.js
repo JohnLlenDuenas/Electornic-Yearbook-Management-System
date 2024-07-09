@@ -2,18 +2,24 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const session = require('express-session');
-const { MongoClient } = require('mongodb');
+const mongoose = require('mongoose');
+const Student = require('./models/Student');
+const ConsentForm = require('./models/ConsentForm');
 
 const app = express();
 const port = 3000;
 
 // MongoDB connection string
-const uri = "mongodb://localhost:27017";
-const client = new MongoClient(uri);
+const uri = "mongodb://localhost:27017/EYBMS_DB";
 
-// Encryption key and IV
-const encryptionKey = '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b'; // Must be 32 bytes (256 bits)
-const iv = 'A1B2C3D4E5F6G7H8'; // Initialization vector
+// Connect to MongoDB using Mongoose
+mongoose.connect(uri).then(() => {
+  console.log('Connected to MongoDB');
+}).catch(err => {
+  console.error('Error connecting to MongoDB', err);
+});
+
+
 
 // Middleware to parse JSON
 app.use(express.json());
@@ -48,24 +54,6 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
-// Function to create unique index on studentNumber
-const createUniqueStudentNumberIndex = async () => {
-  try {
-    await client.connect();
-    const database = client.db('EYBMS_DB');
-    const users = database.collection('users');
-    const consent = database.collection('consent');
-    await users.createIndex({ studentNumber: 1 }, { unique: true });
-    console.log("Unique index created on studentNumber");
-  } catch (error) {
-    console.error("Error creating unique index on studentNumber:", error);
-  } finally {
-    await client.close();
-  }
-};
-
-// Call createUniqueStudentNumberIndex function to create the unique index
-createUniqueStudentNumberIndex();
 
 function getCurrentDateTime() {
   const now = new Date();
@@ -74,45 +62,45 @@ function getCurrentDateTime() {
   return `${date} ${time}`;
 }
 
-//Consent fill RouteCollection
+//consent fill route
 app.post('/consent-fill', async (req, res) => {
   const dateTime = getCurrentDateTime();
-  const { student_name,
-    grade,
-    section,
-    parentguardian_name,
-    relationship,
-    contactno,
-    formStatus} = req.body;
+  const { student_Number, student_Name, gradeSection, parentguardian_name, relationship, contactno, formStatus } = req.body;
 
   try {
-    // Insert the consent filled 
-    await client.connect();
-    const database = client.db('EYBMS_DB');
-    const consent = database.collection('consent');
-    const consentData = {
-      student_Name:student_name,
-      grade:grade,
-      section:section,
-      parentGuardian_Name:parentguardian_name,
-      relationship:relationship,
-      contactNo:contactno,
-      form_Status:formStatus,
-      date_and_Time_Filled:dateTime
-    };
-    await consent.insertOne(consentData);
-    res.status(201).json({ message: 'Consent Filled successfully' });
-  } catch (error) {
-    if (error.code === 11000) {
-      res.status(400).json({ message: 'Error Saving Consent' });
-    } else {
-      console.error("Saving Consent:", error);
-      res.status(500).json({ message: 'Saving Consent' });
+    // Check if student exists
+    const student = await Student.findOne({ studentNumber: student_Number });
+    if (!student) {
+      return res.status(400).json({ message: 'Student not found' });
     }
-  } finally {
-    await client.close();
+
+    const existingConsentForm = await ConsentForm.findOne({ student_Number });
+    if (existingConsentForm) {
+      return res.status(400).json({ message: 'Consent form for this student already exists' });
+    }
+
+    // Create a new consent form document
+    const consentFormData = new ConsentForm({
+      student_Number,
+      student_Name,
+      gradeSection: gradeSection,
+      parentGuardian_Name: parentguardian_name,
+      relationship,
+      contactNo: contactno,
+      form_Status: formStatus,
+      date_and_Time_Filled: dateTime
+    });
+
+    // Save the consent form to the database
+    await consentFormData.save();
+
+    res.status(201).json({ message: 'Consent filled successfully' });
+  } catch (error) {
+    console.error("Error saving consent form:", error);
+    res.status(500).json({ message: 'Error saving consent form' });
   }
 });
+
 
 
 // Create account route
@@ -121,26 +109,22 @@ app.post('/create-account', async (req, res) => {
 
   try {
     // Encrypt the password
+    const iv = crypto.randomBytes(16); // Initialization vector
+    const encryptionKey = crypto.randomBytes(32); // Must be 32 bytes (256 bits)
     const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
     let encryptedPassword = cipher.update(password, 'utf8', 'hex');
     encryptedPassword += cipher.final('hex');
 
-    // Connect to MongoDB
-    await client.connect();
-    const database = client.db('EYBMS_DB');
-    const users = database.collection('users');
-
-    // Insert the new user
-    const newUser = {
+    // Create a new user document
+    const newUser = new Student({
       studentNumber,
       email,
       password: encryptedPassword,
       accountType,
-      iv: iv.toString('hex')
-    };
-
-    await users.insertOne(newUser);
-
+      iv: iv.toString('hex'), // Ensure this matches the schema field name
+      key: encryptionKey.toString('hex') // Ensure this matches the schema field name
+    });
+    await newUser.save();
     res.status(201).json({ message: 'Account created successfully' });
   } catch (error) {
     if (error.code === 11000) {
@@ -149,30 +133,26 @@ app.post('/create-account', async (req, res) => {
       console.error("Error creating account:", error);
       res.status(500).json({ message: 'Error creating account' });
     }
-  } finally {
-    await client.close();
   }
 });
+
 
 // Login route
 app.post('/login', async (req, res) => {
   const { studentNumber, password } = req.body;
 
   try {
-    // Connect to MongoDB
-    await client.connect();
-    const database = client.db('EYBMS_DB');
-    const users = database.collection('users');
-
     // Find user by student number
-    const user = await users.findOne({ studentNumber });
+    const user = await Student.findOne({ studentNumber });
 
     if (!user) {
       return res.status(400).json({ message: 'Invalid student number or password' });
     }
 
-    // Use the stored IV for decryption
-    const decipher = crypto.createDecipheriv('aes-256-cbc', encryptionKey, iv);
+    // Use the stored IV and key for decryption
+    const iv = Buffer.from(user.iv, 'hex'); // Convert stored hex string back to buffer
+    const key = Buffer.from(user.key, 'hex'); // Convert stored hex string back to buffer
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     let decryptedPassword = decipher.update(user.password, 'hex', 'utf8');
     decryptedPassword += decipher.final('utf8');
 
@@ -193,10 +173,9 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.error("Error logging in:", error);
     res.status(500).json({ message: 'Error logging in' });
-  } finally {
-    await client.close();
   }
 });
+
 
 // Logout route
 app.post('/logout', (req, res) => {
@@ -207,6 +186,16 @@ app.post('/logout', (req, res) => {
     res.status(200).json({ message: 'Logout successful' });
     redirectUrl = '/index.html';
   });
+});
+
+//fetch consent form data
+app.get('/consentformfetch', async (req, res) => {
+  try {
+      const consentForms = await ConsentForm.find();
+      res.json(consentForms);
+  } catch (err) {
+      res.status(500).json({ error: 'Failed to fetch consent forms' });
+  }
 });
 
 // Start the server

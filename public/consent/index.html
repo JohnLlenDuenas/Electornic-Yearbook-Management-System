@@ -75,17 +75,17 @@
                                   <div class="row" style="padding: 5%;">
                                     <div class="col-md-12 mb-3">
                                       <div class="form-group">
-                                        <input type="text" name="name" class="form-control" id="student_name" placeholder="Student's Name" required>
+                                        <input type="text" name="name" class="form-control" name="student_name"id="student_name" placeholder="Student's Name" required>
                                       </div>
                                     </div>
                                     <div class="col-md-12 mb-3">
                                       <div class="form-group">
-                                        <input type="text" class="form-control" name="grade" id="grade" placeholder="Student's Grade Level" required>
+                                        <input type="number" class="form-control" name="student_number" id="student_number" placeholder="Student Number" required>
                                       </div>
                                     </div>
                                     <div class="col-md-12 mb-3">
                                       <div class="form-group">
-                                        <input type="text" class="form-control" name="section" id="section" placeholder="Student's Section" required>
+                                        <input type="text" class="form-control" name="gradeSection" id="gradeSection" placeholder="Student's Grade and Section" required>
                                       </div>
                                     </div>
                                     
@@ -159,40 +159,34 @@
   $(document).ready(function() {
     $('#consentForm').submit(function(event) {
       event.preventDefault();
-      var student_name = $('#student_name').val();
-      var grade = $('#grade').val();
-      var section = $('#section').val();
+      var student_Number = $('#student_number').val();
+      var student_Name = $('#student_name').val();
+      var gradeSection = $('#gradeSection').val();
       var parentguardian_name = $('#parentguardian_name').val();
       var relationship = $('#relationship').val();
       var contactno = $('#contactno').val();
       var formStatus;
       const selection = document.getElementsByName('acceptedOrRejected');
       for (let option of selection) {
-                if (option.checked) {
-                    formStatus = option.value;
-                    break;
-                }
-            }
+        if (option.checked) {
+          formStatus = option.value;
+          break;
+        }
+      }
       $.ajax({
-          type: 'POST',
-          url: '/consent-fill',
-          data: JSON.stringify({
-            student_name: student_name,
-            grade: grade,
-            section: section,
-            parentguardian_name: parentguardian_name,
-            relationship: relationship,
-            contactno: contactno,
-            formStatus: formStatus
-          }),
-          contentType: 'application/json',
-          success: function(response) {
-            $('#consentForm').html('<div class="alert alert-success"><h1>Consent Successfully Submitted Thankyou</h1></div>');
-          },
-          error: function(xhr, status, error) {
-            $('#ConsentMessage').html('<div class="alert alert-danger">An error occurred: ' + xhr.responseText + '</div>');
-          }
-        });
+        type: 'POST',
+        url: '/consent-fill',
+        data: JSON.stringify({
+          student_Number, student_Name, gradeSection, parentguardian_name, relationship, contactno, formStatus
+        }),
+        contentType: 'application/json',
+        success: function(response) {
+          $('#consentForm').html('<div class="alert alert-success"><h1>Consent Successfully Submitted Thankyou</h1></div>');
+        },
+        error: function(xhr, status, error) {
+          $('#ConsentMessage').html('<div class="alert alert-danger">An error occurred: ' + xhr.responseText + '</div>');
+        }
+      });
     });
   });
 </script>
