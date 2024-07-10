@@ -9,6 +9,9 @@ const ConsentForm = require('./models/ConsentForm');
 const app = express();
 const port = 3000;
 
+const parentDirectory = process.env.PARENT_DIRECTORY || 'parent-directory';
+
+
 // MongoDB connection string
 const uri = "mongodb://localhost:27017/EYBMS_DB";
 
@@ -138,7 +141,7 @@ app.post('/create-account', async (req, res) => {
 
 
 // Login route
-app.post('/login', async (req, res) => {
+app.post('/loginroute', async (req, res) => {
   const { studentNumber, password } = req.body;
 
   try {
@@ -161,12 +164,12 @@ app.post('/login', async (req, res) => {
 
       let redirectUrl = '';
       if (user.accountType === 'student') {
-        redirectUrl = 'consent/index.html';
+        redirectUrl = '../consent/index.html';
       } else if (user.accountType === 'admin') {
-        redirectUrl = 'admin/index.html';
+        redirectUrl = '../admin/index.html';
       }
 
-      res.status(200).json({ message: 'Login successful', redirectUrl: redirectUrl });
+      res.status(200).json({ message: 'Login successful', redirectUrl:redirectUrl });
     } else {
       res.status(400).json({ message: 'Invalid student number or password' });
     }
