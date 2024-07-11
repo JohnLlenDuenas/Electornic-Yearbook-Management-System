@@ -138,7 +138,40 @@ app.post('/create-account', async (req, res) => {
     }
   }
 });
+app.post('/upload-csv', async (req, res) => {
+  const accounts = req.body;
 
+  try {
+    for (const account of accounts) {
+      const { studentNumber, email, password, accountType } = account;
+
+      const iv = crypto.randomBytes(16);
+      const encryptionKey = crypto.randomBytes(32);
+      const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
+      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+      encryptedPassword += cipher.final('hex');
+
+      const newUser = new Student({
+        studentNumber,
+        email,
+        password: encryptedPassword,
+        accountType,
+        iv: iv.toString('hex'),
+        key: encryptionKey.toString('hex')
+      });
+
+      await newUser.save();
+    }
+    res.status(201).json({ message: 'Accounts created successfully' });
+  } catch (error) {
+    if (error.code === 11000) {
+      res.status(400).json({ message: 'One or more accounts with this student number already exist' });
+    } else {
+      console.error("Error creating accounts:", error);
+      res.status(500).json({ message: 'Error creating accounts' });
+    }
+  }
+});
 
 // Login route
 app.post('/loginroute', async (req, res) => {

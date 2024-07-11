@@ -28,7 +28,7 @@
     overflow: hidden;
   }
 
-  #header,#sidebar,#createAccModal,#content {
+  #header,#sidebar,#createAccModal,#content,form,.modal-dialog{
     display: none;
   }
 
@@ -46,6 +46,7 @@
     z-index: 2000;
   }
 }
+
   </style>
   
 </head>
@@ -88,7 +89,7 @@
   </div>
 
   <div class="modal fade" id="createAccModal" tabindex="-1" aria-labelledby="createAccModalLabel" aria-hidden="true" style="padding-top: 10%;">
-    <div class="modal-dialog">
+    <div class="modal-dialog" style="max-width: 50%;">
       <div class="modal-content box-shadow-full">
         <div class="modal-header">
           <h5 class="title-left">Create Account</h5>
@@ -97,42 +98,69 @@
           </button>
         </div>
         <div class="modal-body">
-          <form id="createAccForm">
-            <div class="col-md-12 mb-3">
-              <div class="form-group">
-                <label for="email"><h4>Student Number</h4></label>
-                <input type="number" class="form-control" id="student_number" placeholder="Enter Student Number" required>
+          <div>
+            <form id="createAccForm">
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="email"><h4>Student Number</h4></label>
+                  <input type="number" class="form-control" id="student_number" placeholder="Enter Student Number" required>
+                </div>
               </div>
-            </div>
-            <div class="col-md-12 mb-3">
-              <div class="form-group">
-                <label for="email"><h4>Email</h4></label>
-                <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter Email" required>
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="email"><h4>Email</h4></label>
+                  <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter Email" required>
+                </div>
               </div>
-            </div>
-            <div class="col-md-12 mb-3">
-              <div class="form-group">
-                <label for="password"><h4>Password</h4></label>
-                <input type="password" class="form-control" id="password" placeholder="Password" required>
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="password"><h4>Password</h4></label>
+                  <input type="password" class="form-control" id="password" placeholder="Password" required>
+                </div>
               </div>
-            </div>
-            <div class="col-md-12 mb-3">
-              <div class="form-group">
-                <label for="acctype"><h4>Account Type</h4></label>
-                <select id="acctype" class="form-control" name="account_type" placeholder="Select Account Type">
-                  <option value="student">Student</option>
-                  <option value="comittee">Comittee</option>
-                </select>
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="acctype"><h4>Account Type</h4></label>
+                  <select id="acctype" class="form-control" name="account_type" placeholder="Select Account Type">
+                    <option value="student">Student</option>
+                    <option value="comittee">Comittee</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            <div class="col-md-12 mb-3">
-              <div class="grid">
+              <div class="col-md-12 mb-3">
                 <div>
                   <button type="button" class="button button-a button-big button-rouded" id="createAccountButton">Create</button>
                 </div>
               </div>
-            </div>
-          </form>
+            </form>
+            <form id="createAccForm">
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="csvFile"><h4>Upload CSV File</h4></label>
+                  <input type="file" class="form-control" id="csvFile" accept=".csv">
+                </div>
+              </div>
+              <div class="col-md-12 mb-3">
+                <table id="csvPreviewTable" class="table table-striped" style="display: none;">
+                  <thead>
+                    <tr>
+                      <th>Student Number</th>
+                      <th>Email</th>
+                      <th>Password</th>
+                      <th>Account Type</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="col-md-12 mb-3">
+                <div>
+                  <button type="button" class="button button-a button-big button-rouded" id="uploadCsvButton">Upload CSV</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          
         </div>
       </div>
     </div>
@@ -168,11 +196,8 @@
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script>
-    document.getElementById('toggle-button').addEventListener('click', function () {
-      document.getElementById('sidebar').classList.toggle('retracted');
-      document.getElementById('content').classList.toggle('retracted');
-    });
     $(document).ready(function () {
       $('#toggle-button').click(function () {
         $('#sidebar').toggleClass('open');
@@ -202,6 +227,58 @@
             alert('Error creating account');
           }
         });
+      });
+
+      $('#csvFile').change(function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          Papa.parse(file, {
+            header: true,
+            complete: function (results) {
+              const data = results.data;
+              const tbody = $('#csvPreviewTable tbody');
+              tbody.empty();
+              data.forEach(row => {
+                const tr = $('<tr>');
+                tr.append($('<td>').text(row.studentNumber));
+                tr.append($('<td>').text(row.email));
+                tr.append($('<td>').text(row.password));
+                tr.append($('<td>').text(row.accountType));
+                tbody.append(tr);
+              });
+              $('#csvPreviewTable').show();
+            }
+          });
+        }
+      });
+
+      $('#uploadCsvButton').click(function () {
+        const file = $('#csvFile')[0].files[0];
+        if (file) {
+          Papa.parse(file, {
+            header: true,
+            complete: function (results) {
+              const data = results.data;
+              $.ajax({
+                url: '/upload-csv',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (response) {
+                  alert(response.message);
+                  $('#createAccForm')[0].reset();
+                  $('#csvPreviewTable tbody').empty();
+                  $('#csvPreviewTable').hide();
+                },
+                error: function (error) {
+                  alert('Error uploading CSV');
+                }
+              });
+            }
+          });
+        } else {
+          alert('Please select a CSV file');
+        }
       });
     });
   </script>

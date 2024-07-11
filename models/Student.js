@@ -8,5 +8,5 @@ const studentSchema = new mongoose.Schema({
   iv: { type: String, required: true },
   key: { type: String, required: true }
 });
-const Photo = mongoose.model('Student', studentSchema);
-module.exports = Photo;
+const Student = mongoose.model('Student', studentSchema);
+module.exports = Student;
