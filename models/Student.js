@@ -6,7 +6,9 @@ const studentSchema = new mongoose.Schema({
   password: { type: String, required: true },
   accountType: { type: String, required: true },
   iv: { type: String, required: true },
-  key: { type: String, required: true }
+  key: { type: String, required: true },
+  consentfilled: { type: Boolean, required: true,default: false },
+
 });
 const Student = mongoose.model('Student', studentSchema);
 module.exports = Student;

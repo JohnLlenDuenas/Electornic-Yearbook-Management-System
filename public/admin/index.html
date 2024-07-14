@@ -208,6 +208,7 @@
         const email = $('#email').val();
         const password = $('#password').val();
         const accountType = $('#acctype').val();
+        const conf = false;
 
         $.ajax({
           url: '/create-account',
@@ -217,7 +218,8 @@
             studentNumber: studentNumber,
             email: email,
             password: password,
-            accountType: accountType
+            accountType: accountType,
+            consentfilled: conf,
           }),
           success: function (response) {
             alert(response.message);
