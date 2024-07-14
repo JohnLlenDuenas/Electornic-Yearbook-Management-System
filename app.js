@@ -140,6 +140,7 @@ app.post('/consent-fill', async (req, res) => {
 // Create account route
 app.post('/create-account', async (req, res) => {
   const { studentNumber, email, password, accountType } = req.body;
+  
 
   try {
     // Encrypt the password
@@ -165,14 +166,8 @@ app.post('/create-account', async (req, res) => {
     await logActivity(newUser._id, 'Account created', 'Account created successfully');
     res.status(201).json({ message: 'Account created successfully' });
   } catch (error) {
-    if (error.code === 11000) {
-      await logActivity(null, 'Account creation failed', 'Account with this student number already exists');
-      res.status(400).json({ message: 'Account with this student number already exists' });
-    } else {
-      console.error("Error creating account:", error);
-      await logActivity(null, 'Error creating account', error.message);
-      res.status(500).json({ message: 'Error creating account' });
-    }
+    await logActivity(null, 'Error creating account', error.message);
+
   }
 });
 
@@ -182,12 +177,11 @@ app.post('/upload-csv', async (req, res) => {
 
   try {
     for (const account of accounts) {
-      const { studentNumber, email, password, accountType, consentfilled } = account;
+      const { studentNumber, email, password, accountType } = account;
 
       if (!password) {
-        console.error(`Missing password for student number: ${studentNumber}`);
-        res.status(400).json({ message: `Missing password for student number: ${studentNumber}` });
-        return;
+        console.error("Missing password for account:", account);
+        continue; // Skip this account and proceed with others
       }
 
       const iv = crypto.randomBytes(16);
@@ -196,32 +190,30 @@ app.post('/upload-csv', async (req, res) => {
       let encryptedPassword = cipher.update(password, 'utf8', 'hex');
       encryptedPassword += cipher.final('hex');
 
-      // Create a new user document
       const newUser = new Student({
         studentNumber,
         email,
         password: encryptedPassword,
         accountType,
-        iv: iv.toString('hex'), // Ensure this matches the schema field name
-        key: encryptionKey.toString('hex'), // Ensure this matches the schema field name
-        consentfilled
+        iv: iv.toString('hex'),
+        key: encryptionKey.toString('hex'),
+        consentfilled: false // Set consentfilled to false for all new accounts by default
       });
 
       await newUser.save();
-      await logActivity(newUser._id, 'Batch account created', `Account created successfully for ${studentNumber}`);
+      await logActivity(newUser._id, 'Account created', 'Account created successfully');
     }
     res.status(201).json({ message: 'Accounts created successfully' });
   } catch (error) {
     if (error.code === 11000) {
-      await logActivity(null, 'Batch account creation failed', 'One or more accounts with this student number already exist');
       res.status(400).json({ message: 'One or more accounts with this student number already exist' });
     } else {
       console.error("Error creating accounts:", error);
-      await logActivity(null, 'Error creating accounts', error.message);
       res.status(500).json({ message: 'Error creating accounts' });
     }
   }
 });
+
 
 
 // Login route with activity logging

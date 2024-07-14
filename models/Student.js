@@ -10,5 +10,5 @@ const studentSchema = new mongoose.Schema({
   consentfilled: { type: Boolean, required: true,default: false },
 
 });
-const Student = mongoose.model('Student', studentSchema);
-module.exports = Student;
+const Photo = mongoose.model('Student', studentSchema);
+module.exports = Photo;

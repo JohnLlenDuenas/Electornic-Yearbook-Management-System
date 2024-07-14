@@ -230,7 +230,6 @@
           }
         });
       });
-
       $('#csvFile').change(function (e) {
         const file = e.target.files[0];
         if (file) {
@@ -255,33 +254,34 @@
       });
 
       $('#uploadCsvButton').click(function () {
-        const file = $('#csvFile')[0].files[0];
-        if (file) {
-          Papa.parse(file, {
-            header: true,
-            complete: function (results) {
-              const data = results.data;
-              $.ajax({
-                url: '/upload-csv',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                success: function (response) {
-                  alert(response.message);
-                  $('#createAccForm')[0].reset();
-                  $('#csvPreviewTable tbody').empty();
-                  $('#csvPreviewTable').hide();
-                },
-                error: function (error) {
-                  alert('Error uploading CSV');
-                }
-              });
+    const file = $('#csvFile')[0].files[0];
+    if (file) {
+      Papa.parse(file, {
+        header: true,
+        complete: function (results) {
+          const data = results.data;
+          console.log("CSV Data:", data); // Log the parsed CSV data
+          $.ajax({
+            url: '/upload-csv',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (response) {
+              alert(response.message);
+              $('#createAccForm')[0].reset();
+              $('#csvPreviewTable tbody').empty();
+              $('#csvPreviewTable').hide();
+            },
+            error: function (error) {
+              alert('Error uploading CSV');
             }
           });
-        } else {
-          alert('Please select a CSV file');
         }
       });
+    } else {
+      alert('Please select a CSV file');
+    }
+  });
     });
   </script>
 
