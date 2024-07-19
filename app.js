@@ -31,7 +31,7 @@ app.use(session({
   cookie: { secure: false } // Set secure to true if using https
 }));
 
-// Serve static files
+// Serve public static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware to check if user is authenticated
@@ -39,21 +39,22 @@ const checkAuthenticated = (req, res, next) => {
   if (req.session.user) {
     next();
   } else {
-    res.redirect('/');
+    res.redirect('/login');
   }
 };
 
-// Middleware to ensure role
-function ensureRole(role) {
+// Middleware to ensure role-based access control
+const ensureRole = (roles) => {
   return (req, res, next) => {
-    if (req.session.user && req.session.user.accountType === role) {
+    if (req.session.user && roles.includes(req.session.user.accountType)) {
       return next();
     } else {
       logActivity(req.session.user ? req.session.user._id : null, `Unauthorized access attempt to ${req.originalUrl}`);
       res.status(403).send('Forbidden');
     }
   };
-}
+};
+
 
 // Function to log activity
 const logActivity = async (userId, action, details = '') => {
@@ -70,22 +71,27 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Route for protected pages based on roles
-app.get('/consent/index.html', checkAuthenticated, ensureRole('student'), (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'consent', 'index.html'));
+// Route to serve login.html
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-app.get('/admin/index.html', checkAuthenticated, ensureRole('admin'), (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
+// API to check authentication status
+app.get('/check-auth', (req, res) => {
+  if (req.session.user) {
+    res.json({ isAuthenticated: true, userRole: req.session.user.accountType });
+  } else {
+    res.json({ isAuthenticated: false });
+  }
 });
 
-app.get('/committee/index.html', checkAuthenticated, ensureRole('committee'), (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'committee', 'index.html'));
-});
+// Serve static files for authenticated users
+app.use('/admin', checkAuthenticated, ensureRole(['admin']), express.static(path.join(__dirname, 'public', 'admin')));
+app.use('/student', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'student')));
+app.use('/committee', checkAuthenticated, ensureRole(['committee']), express.static(path.join(__dirname, 'public', 'committee')));
 
-app.get('/dashboard', checkAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
+// Add this for the consent form page
+app.use('/consent', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'consent')));
 
 // Utility function to get current date and time
 function getCurrentDateTime() {
@@ -94,7 +100,6 @@ function getCurrentDateTime() {
   const time = now.toLocaleTimeString();
   return `${date} ${time}`;
 }
-
 // Consent fill route
 app.post('/consent-fill', async (req, res) => {
   const dateTime = getCurrentDateTime();
@@ -140,7 +145,6 @@ app.post('/consent-fill', async (req, res) => {
 // Create account route
 app.post('/create-account', async (req, res) => {
   const { studentNumber, email, password, accountType } = req.body;
-  
 
   try {
     // Encrypt the password
@@ -150,7 +154,6 @@ app.post('/create-account', async (req, res) => {
     let encryptedPassword = cipher.update(password, 'utf8', 'hex');
     encryptedPassword += cipher.final('hex');
     const consntf = false;
-
 
     // Create a new user document
     const newUser = new Student({
@@ -167,7 +170,7 @@ app.post('/create-account', async (req, res) => {
     res.status(201).json({ message: 'Account created successfully' });
   } catch (error) {
     await logActivity(null, 'Error creating account', error.message);
-
+    res.status(500).json({ message: 'Error creating account' });
   }
 });
 
@@ -214,8 +217,6 @@ app.post('/upload-csv', async (req, res) => {
   }
 });
 
-
-
 // Login route with activity logging
 app.post('/loginroute', async (req, res) => {
   const { studentNumber, password } = req.body;
@@ -247,9 +248,7 @@ app.post('/loginroute', async (req, res) => {
           redirectUrl = '../student/index.html';
           action = 'Logged in as student';
         } else {
-          setTimeout(() => {
-            redirectUrl = '../consent/index.html';
-          }, 2000);
+          redirectUrl = '../consent/index.html';
           action = 'Student redirected to consent form';
         }
       } else if (user.accountType === 'admin') {
@@ -286,7 +285,7 @@ app.post('/logout', (req, res) => {
 });
 
 // Fetch consent form data
-app.get('/consentformfetch', async (req, res) => {
+app.get('/consentformfetch', checkAuthenticated, ensureRole(['admin', 'committee']), async (req, res) => {
   try {
     const consentForms = await ConsentForm.find();
     await logActivity(req.session.user ? req.session.user._id : null, 'Fetch consent form data');
