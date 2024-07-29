@@ -20,74 +20,211 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <style>
-    #mobile-blocker{
-  display: none;
-}
-@media only screen and (max-width: 768px) {
-  body {
-    overflow: hidden;
-  }
+    #mobile-blocker {
+      display: none;
+    }
 
-  #header,#sidebar,#createAccModal,#content,form,.modal-dialog{
-    display: none;
-  }
+    @media only screen and (max-width: 768px) {
+      body {
+        overflow: hidden;
+      }
 
-  #mobile-blocker {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: rgb(255, 255, 255);
-    text-align: center;
-    padding-top: 200px;
-    z-index: 2000;
-  }
-}
+      #header,
+      #sidebar,
+      #content {
+        display: none;
+      }
 
+      #mobile-blocker {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: rgb(255, 255, 255);
+        text-align: center;
+        padding-top: 200px;
+        z-index: 2000;
+      }
+    }
+
+    .align-left {
+      text-align: left;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+      background-color: #f8f9fa;
+      border-radius: 25px;
+      padding: 5px;
+      border: 1px solid #ced4da;
+    }
+
+    .search-container input[type="search"] {
+      border: none;
+      outline: none;
+      padding: 10px;
+      border-radius: 25px;
+      flex-grow: 1;
+    }
+
+    .search-container button {
+      background: none;
+      border: none;
+      outline: none;
+      padding: 10px;
+      margin-right: 5px;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+
+    .search-container button img {
+      width: 16px;
+      height: 16px;
+    }
+
+    
+    #sidebar {
+      position: fixed;
+      top: 60px; 
+      left: 0;
+      height: calc(100vh - 60px); 
+      width: 250px;
+      background-color: #000000;
+      color: white;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    #sidebar .nav-link {
+      color: white;
+    }
+
+    #sidebar .nav-link:hover {
+      background-color: #495057;
+    }
+
+    #sidebar .Dashboard {
+      width: 28px;
+      height: 28px;
+      margin-left: 70px;
+      transition: margin-right 5s;
+    }
+
+    #sidebar .Yearbook {
+      width: 28px;
+      height: 28px;
+      margin-left: 80px;
+      transition: margin-right 5s;
+    }
+
+    #sidebar .Students {
+      width: 28px;
+      height: 28px;
+      margin-left: 85px;
+      transition: margin-right 5s;
+    }
+
+    #sidebar .Committee {
+      width: 28px;
+      height: 28px;
+      margin-left: 68px;
+      transition: margin-right 5s;
+    }
+
+    #sidebar .Settings {
+      width: 28px;
+      height: 28px;
+      margin-left: 90px;
+      transition: margin-right 5s;
+    }
+
+    #content {
+      margin-left: 250px;
+      padding-top: 60px; 
+    }
+
+    
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: black;
+      z-index: 10; 
+    }
+    
   </style>
-  
+
 </head>
 
 <body id="body-content">
 
+ 
   <header id="header" style="background-color: black;">
     <div class="container d-flex align-items-center justify-content-between">
       <button id="toggle-button">☰</button>
-      <h1 class="logo"><img src="../assets/img/mlndy logo.png"><a href="#" style="font-size: 75%;"> MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a></h1>
+      <h1 class="logo">
+        <img src="../assets/img/mlndy logo.png">
+        <a href="#" style="font-size: 75%;"> MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a>
+      </h1>
 
       <nav id="navbar" class="navbar">
-        <ul>
-          <li><a class="nav-link " href="" data-toggle="modal" data-target="#createAccModal">Create Account</a></li>
+        <ul class="d-flex align-items-center">
+          <li>
+            <form class="form-inline my-2 my-lg-0 search-container">
+              <input class="form-control" type="search" placeholder="Search your work" aria-label="Search">
+              <button type="submit"><img src="../assets/img/OIP.jpg" alt="Search"></button>
+            </form>
+          </li>
         </ul>
         <i class="bi bi-list mobile-nav-toggle"></i>
       </nav>
-      <h1 class="logo"><a href="" style="font-size: 50%;">Admin</a></h1>
+      <h1 class="logo">
+        <a href="" style="font-size: 65%;">
+          <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
+          Admin
+        </a>
+      </h1>
     </div>
   </header>
 
+  
   <div id="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item">
-        <a class="nav-link active" href="#">Dashboard</a>
+        <a class="nav-link" href="#">Yearbook
+        <img src="../assets/img/yearbook.png" alt="Yearbook" class="Yearbook">
+      </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Yearbook</a>
+        <a class="nav-link" href="#">Students
+        <img src="../assets/img/Students.png" alt="Students" class="Students">
+      </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Students</a>
+        <a class="nav-link" href="#">Committee
+        <img src="../assets/img/committee.png" alt="Committee" class="Committee">
+      </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Committee</a>
+        <a class="nav-link" href="#" data-toggle="modal" data-target="#createAccModal">Create Acct
+        <img src="../assets/img/createacct.png" alt="Committee" class="Committee">
+      </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Settings</a>
+        <a class="nav-link" href="#">Settings
+        <img src="../assets/img/settings.png" alt="Settings" class="Settings">
+      </a>
       </li>
+      <li class="nav-item">
+        <button class=" nav-link button button-a button-rouded" id="logoutButton" >Logout</button>
+        </li>
     </ul>
   </div>
-
   <div class="modal fade" id="createAccModal" tabindex="-1" aria-labelledby="createAccModalLabel" aria-hidden="true" style="padding-top: 10%;">
     <div class="modal-dialog" style="max-width: 50%;">
       <div class="modal-content box-shadow-full">
@@ -166,6 +303,7 @@
     </div>
   </div>
 
+  
   <div id="content">
     <main id="main">
       <section id="about" class="about-mf sect-pt4 route">
@@ -173,15 +311,15 @@
           <div class="row">
             <div class="col-sm-12">
               <div class="box-shadow-full">
+                <div class="align-left">
+                  <h4>Published Yearbooks</h4>
+                  <a href="/yearbook/23"><img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" width="26%" height="200"></a>
+
+                  <h4>Pending Yearbooks</h4>
+                  <a href="/yearbook/20"><img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Pending Yearbooks" width="26%" height="auto"></a>
+                </div>
                 <div class="grid">
-                  <div></div>
-                  <div>
-                    <h2></h2>
-                    <p class="lead">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean in nibh tristique, convallis ligula nec, egestas elit. Mauris nibh nisi, rutrum ut laoreet quis, porttitor sed nunc. Vivamus sem urna, congue tristique hendrerit in, auctor in magna. Ut lacus risus, sagittis quis lobortis id, tempus sit amet lacus. Etiam blandit metus est, non suscipit nisi eleifend dictum. Donec accumsan nunc fermentum consectetur mollis. Integer in orci rhoncus, rhoncus urna at, semper lacus. Phasellus gravida, lacus in varius venenatis, libero justo aliquet nibh, eget blandit turpis libero nec nisl. Nullam hendrerit porttitor ex sit amet finibus. Vestibulum porta risus vitae sapien commodo vulputate.
-                      <br>Nullam ultrices tellus eu turpis venenatis, sed cursus enim maximus. Morbi in dignissim mauris. Nam elementum turpis vel sapien vehicula, sed iaculis lacus tempus. Aenean posuere pulvinar purus et consequat. Vivamus a augue arcu. Nam eleifend odio nunc, facilisis semper felis blandit sed. In hac habitasse platea dictumst. Nam pretium eget mi quis blandit. Mauris vehicula, nisi vel faucibus ultrices, felis risus rutrum turpis, vel placerat felis mi vel enim. Ut hendrerit volutpat mollis. Maecenas porttitor lorem eros, in volutpat ex blandit pellentesque. Nunc lobortis, lectus eu volutpat volutpat, eros dui scelerisque felis, id faucibus ligula ligula id nunc. Suspendisse dapibus tincidunt arcu eu mattis. Phasellus viverra libero nec eros cursus semper. Suspendisse posuere maximus nulla, varius rutrum urna laoreet nec. Vivamus sodales pulvinar magna nec mollis.
-                    </p>
-                  </div>
+                  
                 </div>
               </div>
             </div>
@@ -191,19 +329,18 @@
     </main>
   </div>
 
+  
   <div id="mobile-blocker">
     <h1 style="color: white;">Access Denied</h1>
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script>
-    $(document).ready(function () {
-      $('#toggle-button').click(function () {
-        $('#sidebar').toggleClass('open');
-      });
-
-      $('#createAccountButton').click(function () {
+    document.getElementById('toggle-button').addEventListener('click', function() {
+      document.getElementById('sidebar').classList.toggle('retracted');
+      document.getElementById('content').classList.toggle('retracted');
+    });
+    $('#createAccountButton').click(function () {
         const studentNumber = $('#student_number').val();
         const email = $('#email').val();
         const password = $('#password').val();
@@ -252,39 +389,30 @@
           });
         }
       });
-
-      $('#uploadCsvButton').click(function () {
-    const file = $('#csvFile')[0].files[0];
-    if (file) {
-      Papa.parse(file, {
-        header: true,
-        complete: function (results) {
-          const data = results.data;
-          console.log("CSV Data:", data); // Log the parsed CSV data
-          $.ajax({
-            url: '/upload-csv',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function (response) {
-              alert(response.message);
-              $('#createAccForm')[0].reset();
-              $('#csvPreviewTable tbody').empty();
-              $('#csvPreviewTable').hide();
-            },
-            error: function (error) {
-              alert('Error uploading CSV');
-            }
-          });
-        }
-      });
-    } else {
-      alert('Please select a CSV file');
-    }
-  });
+      document.getElementById('logoutButton').addEventListener('click', function() {
+    fetch('/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message === 'Logout successful') {
+        window.location.href = '/login';
+      } else {
+        alert('Error logging out');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error logging out');
     });
+  });
+
   </script>
-<script src="../auth.js"></script>
+  <script src="../auth.js"></script>
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>

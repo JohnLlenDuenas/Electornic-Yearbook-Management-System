@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Change Password | E - Yearbook Management System</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <link href="../assets/img/mlndy logo.png" rel="icon">
+  <link href="../assets/img/mlndy logo.png" rel="apple-touch-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-Rk4kgbc4eEkdaD6S6ZjPhxnU9HWyqeqeUQ+Rz/z6z3qmWTfaTlqmKAzzPXZ+6u2oUlVbMZIuSJtQ9nH19p0x2Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link href="../assets/css/style.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+  <header id="header" class="fixed-top">
+    <div class="container d-flex align-items-center justify-content-between">
+      <h1 class="logo"><img src="../assets/img/mlndy logo.png"><a href="index.html" style="font-size: 75%;">     MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a></h1>
+      
+    </div>
+  </header>
+
+  <div id="hero" class="hero route bg-image" style="background-image: url(../assets/img/hero-bg.jpg)">
+    <div class="overlay-itro"></div>
+    <div class="hero-content display-table">
+      <div class="table-cell">
+        <div class="container">
+          
+          <div id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true" style="padding-top: 10%;">
+            <div class="modal-dialog">
+              <div class="modal-content box-shadow-full">
+                <div class="modal-header">
+                  <h5 class="title-left">Change Password</h5>
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <form id="loginForm">
+                    
+                    <div class="col-md-12 mb-3">
+                      <div class="form-group">
+                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                      </div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <div>
+                            <button type="submit" class="button button-a button-big button-rouded">Submit</button>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                      <div id="message"></div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+  
+  <script>
+    $(document).ready(function() {
+      $('#loginForm').on('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+  
+        const newPassword = $('#password').val();
+        
+        // Simple client-side validation
+        if (newPassword.length < 6) {
+          $('#message').text('Password must be at least 6 characters long').css('color', 'red');
+          return;
+        }
+  
+        // Send the new password to the server
+        $.ajax({
+          url: '/change-password',
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ newPassword: newPassword }),
+          success: function(response) {
+            $('#message').text(response.message).css('color', 'green');
+            // Redirect to the consent page after successful password change
+            setTimeout(() => {
+              window.location.href = '../consent/index.html';
+            }, 2000); // Redirect after 2 seconds to show the success message
+          },
+          error: function(xhr) {
+            $('#message').text(xhr.responseJSON.message).css('color', 'red');
+          }
+        });
+      });
+    });
+  </script>
+  
+    
+  
+
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="../assets/vendor/typed.js/typed.min.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

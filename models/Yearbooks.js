@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const yearbookSchema = new mongoose.Schema({
-    yearbookId: { type: mongoose.Schema.Types.ObjectId, auto: true },
+    yearbookId: {type:String,required: true},
     title: { type: String, required: true },
     schoolYear: { type: String, required: true },
     createdDate: { type: Date, default: Date.now },
