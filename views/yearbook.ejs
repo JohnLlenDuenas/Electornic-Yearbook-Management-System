@@ -50,6 +50,84 @@
       }
     }
 
+    #action-buttons {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+    }
+
+    #action-buttons button {
+      margin: 0 10px;
+    }
+
+    #content {
+      position: relative;
+    }
+
+    .center-top-text {
+      position: absolute;
+      top: 20px; 
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #333; 
+      text-align: center;
+      z-index: 1000;
+    }
+
+    .zoom-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    .zoom-button:hover {
+      background-color: #0056b3;
+    }
+
+    #zoom-control {
+      position: fixed;
+      bottom: 20px;
+      right: 80px;
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 5px;
+      padding: 5px 10px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    #zoom-control button {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 0 10px;
+    }
+
+    #zoom-control span {
+      font-size: 16px;
+      margin: 0 10px;
+    }
+
+    
+
     .align-left {
       text-align: left;
     }
@@ -156,43 +234,34 @@
       background-color: black;
       z-index: 10; 
     }
-    
   </style>
-
 </head>
 
 <body id="body-content">
 
- 
   <header id="header" style="background-color: black;">
     <div class="container d-flex align-items-center justify-content-between">
       <button id="toggle-button">☰</button>
-      <h1 class="logo">
-        <img src="../assets/img/mlndy logo.png">
-        <a href="#" style="font-size: 75%;"> MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a>
-      </h1>
+      <h1 class="logo"><img src="../assets/img/mlndy logo.png"><a href="#" style="font-size: 75%;"> MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a></h1>
 
-      <nav id="navbar" class="navbar">
-        <ul class="d-flex align-items-center">
-          <li>
-            <form class="form-inline my-2 my-lg-0 search-container">
-              <input class="form-control" type="search" placeholder="Search your work" aria-label="Search">
-              <button type="submit"><img src="../assets/img/OIP.jpg" alt="Search"></button>
-            </form>
-          </li>
+      <nav id="navbar" class="navbar d-flex">
+        <ul class="navbar-nav">
+          
         </ul>
         <i class="bi bi-list mobile-nav-toggle"></i>
       </nav>
-      <h1 class="logo">
-        <a href="" style="font-size: 65%;">
-          <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
-          Admin
-        </a>
-      </h1>
+      <div class="d-flex align-items-center">
+        <button class="button button-a  button-rouded">Publish</button>
+        <h1 class="logo" >
+          <a href="" style="font-size: 65%;">
+            <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
+            Admin
+          </a>
+        </h1>
+      </div>
     </div>
   </header>
 
-  
   <div id="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item">
@@ -221,27 +290,24 @@
       </a>
       </li>
       <li class="nav-item">
-      <button class=" nav-link button button-a button-rouded" id="logoutButton" >Logout</button>
-      </li>
+        <button class=" nav-link button button-a button-rouded" id="logoutButton" >Logout</button>
+        </li>
     </ul>
   </div>
-
   <div id="content">
+    <div class="center-top-text">
+      <h1><%- yearbook.title.rendered %></h1>
+    </div>
     <main id="main">
       <section id="about" class="about-mf sect-pt4 route">
         <div class="container">
           <div class="row">
             <div class="col-sm-12">
               <div class="box-shadow-full">
-                <div class="grid">
-                  <div></div>
-                  <div>
-                    <h2><%- yearbook.title.rendered %></h2>
-                    <p class="lead">
-                      <%- yearbook.content.rendered %>
-                    </p>
-                  </div>
-                </div>
+                <p class="lead img-fluid" id="yearbook-image">
+                  <%- yearbook.content.rendered %>
+                </p>
+                
               </div>
             </div>
           </div>
@@ -250,133 +316,33 @@
     </main>
   </div>
 
+
   <div id="mobile-blocker">
     <h1 style="color: white;">Access Denied</h1>
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
-  <script>
-    document.getElementById('toggle-button').addEventListener('click', function() {
-      document.getElementById('sidebar').classList.toggle('retracted');
-      document.getElementById('content').classList.toggle('retracted');
-    });
-    $(document).ready(function () {
-      $('#toggle-button').click(function () {
-        $('#sidebar').toggleClass('open');
-      });
 
-      $('#createAccountButton').click(function () {
-        const studentNumber = $('#student_number').val();
-        const email = $('#email').val();
-        const password = $('#password').val();
-        const accountType = $('#acctype').val();
-        const conf = false;
+  <div id="action-buttons">
+    <button id="undo-button" class="button button-a  button-rouded" ><strong><</strong></button>
+    <button id="redo-button" class="button button-a  button-rouded"><strong>></strong></button>
+  </div>
 
-        $.ajax({
-          url: '/create-account',
-          type: 'POST',
-          contentType: 'application/json',
-          data: JSON.stringify({
-            studentNumber: studentNumber,
-            email: email,
-            password: password,
-            accountType: accountType,
-            consentfilled: conf,
-          }),
-          success: function (response) {
-            alert(response.message);
-            $('#createAccForm')[0].reset(); // Clear the form fields
-          },
-          error: function (error) {
-            alert('Error creating account');
-          }
-        });
-      });
-      $('#csvFile').change(function (e) {
-        const file = e.target.files[0];
-        if (file) {
-          Papa.parse(file, {
-            header: true,
-            complete: function (results) {
-              const data = results.data;
-              const tbody = $('#csvPreviewTable tbody');
-              tbody.empty();
-              data.forEach(row => {
-                const tr = $('<tr>');
-                tr.append($('<td>').text(row.studentNumber));
-                tr.append($('<td>').text(row.email));
-                tr.append($('<td>').text(row.password));
-                tr.append($('<td>').text(row.accountType));
-                tbody.append(tr);
-              });
-              $('#csvPreviewTable').show();
-            }
-          });
-        }
-      });
-
-      $('#uploadCsvButton').click(function () {
-    const file = $('#csvFile')[0].files[0];
-    if (file) {
-      Papa.parse(file, {
-        header: true,
-        complete: function (results) {
-          const data = results.data;
-          console.log("CSV Data:", data); // Log the parsed CSV data
-          $.ajax({
-            url: '/upload-csv',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function (response) {
-              alert(response.message);
-              $('#createAccForm')[0].reset();
-              $('#csvPreviewTable tbody').empty();
-              $('#csvPreviewTable').hide();
-            },
-            error: function (error) {
-              alert('Error uploading CSV');
-            }
-          });
-        }
-      });
-    } else {
-      alert('Please select a CSV file');
-    }
-  });
-    });
-    document.getElementById('logoutButton').addEventListener('click', function() {
-    fetch('/logout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({})
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.message === 'Logout successful') {
-        // Redirect to login page or home page after successful logout
-        window.location.href = '/login';
-      } else {
-        // Handle error case
-        alert('Error logging out');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Error logging out');
-    });
-  });
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-  <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="/assets/vendor/glightbox/js/glightbox.min.js"></script>
-  <script src="/assets/vendor/php-email-form/validate.js"></script>
-  <script src="/assets/vendor/purecounter/purecounter.js"></script>
-  <script src="/assets/vendor/swiper/swiper-bundle.min.js"></script>
-  <script src="/assets/vendor/typed.js/typed.min.js"></script>
-  <script src="/assets/js/main.js"></script>
-
+  <div id="zoom-control">
+    <button id="zoom-out">-</button>
+    <span id="zoom-percentage">100%</span>
+    <button id="zoom-in">+</button>
+  </div>
+  <script src="../assets/js/zoom.js"></script>
+  <script src="../assets/js/createaccount.js"></script>
+  <script src="../assets/js/logout.js"></script>
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="../assets/vendor/php-email-form/validate.js"></script>
+  <script src="../assets/vendor/purecounter/purecounter.js"></script>
+  <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="../assets/vendor/typed.js/typed.min.js"></script>
+  <script src="../assets/js/main.js"></script>
 
 </body>
+
 </html>

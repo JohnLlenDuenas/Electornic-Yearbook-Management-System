@@ -405,8 +405,7 @@
       </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Log Out
-      </a>
+        <button class=" nav-link button button-a button-rouded" id="logoutButton" >Logout</button>
       </li>
     </ul>
   </div>
@@ -444,8 +443,8 @@
   </div>
 
   <div id="action-buttons">
-    <button id="undo-button" class="button button-a  button-rouded" >Undo</button>
-    <button id="redo-button" class="button button-a  button-rouded">Redo</button>
+    <button id="undo-button" class="button button-a  button-rouded" ><strong><</strong></button>
+    <button id="redo-button" class="button button-a  button-rouded"><strong>></strong></button>
   </div>
 
   <div id="zoom-control">
@@ -481,46 +480,6 @@
   
 
   <script>
-    document.getElementById('toggle-button').addEventListener('click', function() {
-      document.getElementById('sidebar').classList.toggle('retracted');
-      document.getElementById('content').classList.toggle('retracted');
-    });
-
-    document.getElementById('undo-button').addEventListener('click', function() {
-      
-      alert('Undo button clicked');
-    });
-
-    document.getElementById('redo-button').addEventListener('click', function() {
-      
-      alert('Redo button clicked');
-    });
-
-    let zoomLevel = 100;
-
-    function updateZoom() {
-      const img = document.getElementById('yearbook-image');
-      img.style.transform = `scale(${zoomLevel / 100})`;
-      document.getElementById('zoom-percentage').textContent = `${zoomLevel}%`;
-    }
-
-    document.getElementById('zoom-in').addEventListener('click', function() {
-      zoomLevel = Math.min(zoomLevel + 10, 200);
-      updateZoom();
-    });
-
-    document.getElementById('zoom-out').addEventListener('click', function() {
-      zoomLevel = Math.max(zoomLevel - 10, 50);
-      updateZoom();
-    });
-
-    document.getElementById('zoom-button').addEventListener('click', function() {
-      const img = document.getElementById('yearbook-image');
-      img.style.transform = img.style.transform === 'scale(1.5)' ? 'scale(1)' : 'scale(1.5)';
-      img.style.transition = 'transform 0.3s ease';
-    });
-
-    updateZoom();
 
     
   </script>
@@ -545,7 +504,8 @@ window.addEventListener('click', (event) => {
 });
 
     </script>   
-
+  <script src="../assets/js/zoom.js"></script>
+  <script src="../assets/js/logout.js"></script>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="../assets/vendor/php-email-form/validate.js"></script>
