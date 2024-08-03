@@ -157,13 +157,24 @@
       z-index: 10; 
     }
     .grid-row {
-            display: grid;
-            grid-template-rows: auto auto; /* This creates two rows with equal height */
-        }
-        .gridds {
-            display: grid;
-            grid-template-columns: auto auto auto ; /* This creates two rows with equal height */
-        }
+    display: grid;
+    grid-template-rows: auto auto;
+  }
+
+  .gridds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1%;
+  }
+
+  .yearbook-img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .lead {
+    margin: 0;
+  }
     
   </style>
 
@@ -320,21 +331,20 @@
               <div class="box-shadow-full">
                 <div class="align-left">
                   <h4 >Published Yearbooks</h4>
-                      <div class="gridds">
-                        <% yearbooks.forEach(yearbook => { %>
-                          <div class="grid-row" style="margin: 1%;text-align: center">
-                            <div>
-                              <a href="/yearbook/<%= yearbook.id %>"><img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" width="50%" height="auto"></a>
-                            </div>
-  
-                            <div>
-                              <%- yearbook.title.rendered %>
-                            </div>
-                            
-                          </div>
-                        <% }) %>
+                  <div class="gridds">
+                    <% yearbooks.forEach(yearbook => { %>
+                      <div class="grid-row" style="margin: 1%; text-align: center;">
+                        <div>
+                          <a href="/yearbook/<%= yearbook.id %>" style="display: block;">
+                            <img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" class="yearbook-img">
+                          </a>
+                        </div>
+                        <div>
+                          <p class="lead"><%- yearbook.title.rendered %></p>
+                        </div>
                       </div>
-                      
+                    <% }) %>
+                  </div>
                 </div>
               </div>
             </div>
