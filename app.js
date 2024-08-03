@@ -7,7 +7,7 @@ const session = require('express-session');
 const mongoose = require('mongoose');
 const Student = require('./models/Student');
 const ConsentForm = require('./models/ConsentForm');
-const ActivityLog = require('./models/ActivityLogs'); // Ensure this path is correct
+const ActivityLog = require('./models/ActivityLogs'); 
 const Yearbook = require('./models/Yearbooks');
 
 const app = express();
@@ -72,7 +72,6 @@ const logActivity = async (userId, action, details = '') => {
   await log.save();
 };
 
-// Set up the cron job
 // Set up the cron job
 cron.schedule('*/10 * * * *', async () => { // Runs every 10 minutes
   try {
@@ -171,7 +170,7 @@ app.post('/consent-fill', async (req, res) => {
     await student.save();
 
     await logActivity(student._id, 'Consent fill', 'Consent form filled successfully');
-    res.status(201).json({ message: 'Consent filled successfully' });
+    res.status(201).json({ message: 'Consent filled successfully', redirectUrl: '/student/yearbooks' });
   } catch (error) {
     console.error("Error saving consent form:", error);
     await logActivity(null, 'Error saving consent form', error.message);
@@ -315,11 +314,11 @@ app.post('/loginroute', async (req, res) => {
           redirectUrl = '../consent/index.html';
           action = 'Student redirected to consent form';
         } else {
-          redirectUrl = '../student/student_dashboard.html';
+          redirectUrl = '/student/yearbooks';
           action = 'Logged in as student';
         }
       } else if (user.accountType === 'admin') {
-        redirectUrl = '../admin/index.html';
+        redirectUrl = '/admin/yearbooks';
         action = 'Logged in as admin';
       } else if (user.accountType === 'committee') {
         redirectUrl = '../committee/index.html';
@@ -361,6 +360,39 @@ app.get('/consentformfetch', checkAuthenticated, ensureRole(['admin', 'committee
   }
 });
 
+//list comitte and student
+app.get('/students', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+  try {
+    const students = await Student.find({ accountType: 'student' });
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+app.get('/comittee', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+  try {
+    const comittee = await Student.find({ accountType: 'admin' });
+    res.json(comittee);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+//list yb for admin
+app.get('/admin/yearbooks', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+  try {
+    const response = await axios.get('http://localhost/wordpress/wp-json/wp/v2/yearbook');
+    const yearbooks = response.data;
+
+    // Explicitly define the path to render the EJS template
+    res.render(path.join(__dirname, 'public', 'admin', 'index'), { yearbooks });
+  } catch (error) {
+    console.error('Error fetching yearbooks:', error);
+    res.status(500).json({ message: 'Error fetching yearbooks' });
+  }
+});
+
+
 app.get('/yearbook/:id', async (req, res) => {
   try {
     const yearbookId = req.params.id;
@@ -391,6 +423,56 @@ app.get('/yearbook/:id', async (req, res) => {
     res.status(500).json({ message: 'Error updating yearbook' });
   }
 });
+
+
+
+//Fetch List Yb Student
+app.get('/student/yearbooks', checkAuthenticated, ensureRole(['student']), async (req, res) => {
+  try {
+    const response = await axios.get('http://localhost/wordpress/wp-json/wp/v2/yearbook');
+    const yearbooks = response.data;
+
+    // Explicitly define the path to render the EJS template
+    res.render(path.join(__dirname, 'public', 'student', 'index'), { yearbooks });
+  } catch (error) {
+    console.error('Error fetching yearbooks:', error);
+    res.status(500).json({ message: 'Error fetching yearbooks' });
+  }
+});
+//
+app.get('/studentyearbook/:id', async (req, res) => {
+  try {
+    const yearbookId = req.params.id;
+    const response = await axios.get(`http://localhost/wordpress/wp-json/wp/v2/yearbook/${yearbookId}`);
+    const yearbookData = response.data;
+
+    console.log('Yearbook Data:', yearbookData);
+
+    await Yearbook.findOneAndUpdate(
+      { yearbookId: yearbookId },
+      {
+        title: yearbookData.title.rendered,
+        content: yearbookData.content.rendered,
+        status: yearbookData.status
+      },
+      { new: true }
+    );
+
+    console.log('Yearbook updated successfully');
+    res.render('studentyearbook', { yearbook: yearbookData });
+  } catch (error) {
+    console.error('Error updating yearbook:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+    }
+    res.status(500).json({ message: 'Error updating yearbook' });
+  }
+});
+
+
+
 
 
 

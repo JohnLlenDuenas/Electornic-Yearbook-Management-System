@@ -184,7 +184,10 @@
           }),
           contentType: 'application/json',
           success: function(response) {
-            $('#consentForm').html('<div class="alert alert-success"><h1>Consent Successfully Submitted Thankyou</h1></div>');
+            $('#consentForm').html('<div class="alert alert-success"><h1>Consent Successfully Submitted Thank you</h1></div>');
+            setTimeout(function() {
+              window.location.href = response.redirectUrl;
+            }, 1000);
           },
           error: function(xhr, status, error) {
             $('#ConsentMessage').html('<div class="alert alert-danger">An error occurred: ' + xhr.responseText + '</div>');
@@ -192,7 +195,7 @@
         });
       });
     });
-  </script>
+  </script>  
     <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
     <script src="../assets/vendor/php-email-form/validate.js"></script>

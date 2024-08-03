@@ -156,6 +156,15 @@
       background-color: black;
       z-index: 10; 
     }
+    .grid-row {
+            display: grid;
+            grid-template-rows: auto auto; /* This creates two rows with equal height */
+        }
+    .gridds {
+          display: grid;
+            grid-template-columns: auto auto auto ; /* This creates two rows with equal height */
+    }
+    
   </style>
 
 </head>
@@ -195,20 +204,10 @@
   <div id="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item">
-        <a class="nav-link" href="#">Yearbook
+        <a class="nav-link" href="/student/yearbooks">Yearbook
         <img src="../assets/img/yearbook.png" alt="Yearbook" class="Yearbook">
       </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Students
-        <img src="../assets/img/Students.png" alt="Students" class="Students">
-      </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Committee
-        <img src="../assets/img/committee.png" alt="Committee" class="Committee">
-      </a>
-      </li>
+      </li> 
       <li class="nav-item">
         <a class="nav-link" href="#">Settings
         <img src="../assets/img/settings.png" alt="Settings" class="Settings">
@@ -229,11 +228,22 @@
             <div class="col-sm-12">
               <div class="box-shadow-full">
                 <div class="align-left">
-                  <h4>Yearbooks</h4>
-                  <img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Yearbooks" width="26%" height="200">
-                </div>
-                <div class="grid">
-                  
+                  <h4 >Published Yearbooks</h4>
+                      <div class="gridds">
+                        <% yearbooks.forEach(yearbook => { %>
+                          <div class="grid-row" style="margin: 1%;text-align: center">
+                            <div>
+                              <a href="/yearbook/<%= yearbook.id %>"><img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" width="50%" height="auto"></a>
+                            </div>
+  
+                            <div>
+                              <%- yearbook.title.rendered %>
+                            </div>
+                            
+                          </div>
+                        <% }) %>
+                      </div>
+                      
                 </div>
               </div>
             </div>
@@ -249,14 +259,7 @@
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
 
-  <script>
-    document.getElementById('toggle-button').addEventListener('click', function() {
-      document.getElementById('sidebar').classList.toggle('retracted');
-      document.getElementById('content').classList.toggle('retracted');
-    });
-
-
-  </script>
+  <script src="../assets/js/zoom.js"></script> 
   <script src="../assets/js/logout.js"></script>
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

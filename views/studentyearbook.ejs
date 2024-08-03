@@ -18,7 +18,7 @@
   <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
   <link href="../assets/css/style.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>	
   <style>
     #mobile-blocker {
       display: none;
@@ -274,8 +274,8 @@
     text-align: center;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center horizontally */
-    justify-content: center; /* Center vertically */
+    align-items: center; 
+    justify-content: center; 
 }
 
 .modal-content img {
@@ -371,7 +371,7 @@
         <i class="bi bi-list mobile-nav-toggle"></i>
       </nav>
       <div class="d-flex align-items-center">
-        <button class="share-button">Share Now</button>
+        <button class="button button-a  button-rouded" id="btnshare">Share Now</button>
         <h1 class="logo">
           <a href="" style="font-size: 65%;">
             <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
@@ -381,22 +381,11 @@
       </div>
     </div>
   </header>
-
   <div id="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item">
-        <a class="nav-link" href="#">Yearbook
+        <a class="nav-link" href="/student/yearbooks">Yearbook
         <img src="../assets/img/yearbook.png" alt="Yearbook" class="Yearbook">
-      </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Students
-        <img src="../assets/img/Students.png" alt="Students" class="Students">
-      </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Committee
-        <img src="../assets/img/committee.png" alt="Committee" class="Committee">
       </a>
       </li>
       <li class="nav-item">
@@ -406,13 +395,13 @@
       </li>
       <li class="nav-item">
         <button class=" nav-link button button-a button-rouded" id="logoutButton" >Logout</button>
-      </li>
+        </li>
     </ul>
   </div>
 
   <div id="content">
     <div class="center-top-text">
-      Yearbook Batch 2025
+      <h1><%- yearbook.title.rendered %></h1>
     </div>
     <main id="main">
       <section id="about" class="about-mf sect-pt4 route">
@@ -420,15 +409,10 @@
           <div class="row">
             <div class="col-sm-12">
               <div class="box-shadow-full">
+                <p class="lead img-fluid" id="yearbook-image">
+                  <%- yearbook.content.rendered %>
+                </p>
                 
-                <div class="grid">
-                  <div></div>
-                  <div>
-                    <img id="yearbook-image" src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Yearbook" class="img-fluid">
-
-                    
-                  </div>                  
-                </div>
               </div>
             </div>
           </div>
@@ -443,8 +427,8 @@
   </div>
 
   <div id="action-buttons">
-    <button id="undo-button" class="button button-a  button-rouded" ><strong><</strong></button>
-    <button id="redo-button" class="button button-a  button-rouded"><strong>></strong></button>
+    <button id="undo-button" class="button button-a  button-rouded" >Undo</button>
+    <button id="redo-button" class="button button-a  button-rouded">Redo</button>
   </div>
 
   <div id="zoom-control">
@@ -476,36 +460,10 @@
         </div>
     </div>
 </div>
-
-  
-
-  <script>
-
-    
-  </script>
-
-  <script>
-const shareBtn = document.querySelector('.share-button');
-const shareModal = document.getElementById('share-modal');
-const closeShareModalBtn = document.getElementById('close-share-modal');
-
-shareBtn.addEventListener('click', () => {
-    shareModal.style.display = 'flex';
-});
-
-closeShareModalBtn.addEventListener('click', () => {
-    shareModal.style.display = 'none';
-});
-
-window.addEventListener('click', (event) => {
-    if (event.target === shareModal) {
-        shareModal.style.display = 'none';
-    }
-});
-
-    </script>   
-  <script src="../assets/js/zoom.js"></script>
-  <script src="../assets/js/logout.js"></script>
+ 
+  <script src="../assets/js/onloadsidebar.js"></script>
+  <script src="../assets/js/zoom.js"></script> 
+  <script src="../assets/js/share.js"></script>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="../assets/vendor/php-email-form/validate.js"></script>

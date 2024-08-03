@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>E - Yearbook Management System</title>
+  <title>Dashboard | E - Yearbook Management System</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -156,6 +156,14 @@
       background-color: black;
       z-index: 10; 
     }
+    .grid-row {
+            display: grid;
+            grid-template-rows: auto auto; /* This creates two rows with equal height */
+        }
+        .gridds {
+            display: grid;
+            grid-template-columns: auto auto auto ; /* This creates two rows with equal height */
+        }
     
   </style>
 
@@ -196,17 +204,17 @@
   <div id="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item">
-        <a class="nav-link" href="#">Yearbook
+        <a class="nav-link" href="/admin/yearbooks"id="yearbooklist">Yearbook
         <img src="../assets/img/yearbook.png" alt="Yearbook" class="Yearbook">
       </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Students
+        <a class="nav-link" href="#students">Students
         <img src="../assets/img/Students.png" alt="Students" class="Students">
       </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Committee
+        <a class="nav-link" href="#comittee">Committee
         <img src="../assets/img/committee.png" alt="Committee" class="Committee">
       </a>
       </li>
@@ -297,7 +305,6 @@
               </div>
             </form>
           </div>
-          
         </div>
       </div>
     </div>
@@ -312,14 +319,22 @@
             <div class="col-sm-12">
               <div class="box-shadow-full">
                 <div class="align-left">
-                  <h4>Published Yearbooks</h4>
-                  <a href="/yearbook/23"><img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" width="26%" height="200"></a>
-
-                  <h4>Pending Yearbooks</h4>
-                  <a href="/yearbook/20"><img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Pending Yearbooks" width="26%" height="auto"></a>
-                </div>
-                <div class="grid">
-                  
+                  <h4 >Published Yearbooks</h4>
+                      <div class="gridds">
+                        <% yearbooks.forEach(yearbook => { %>
+                          <div class="grid-row" style="margin: 1%;text-align: center">
+                            <div>
+                              <a href="/yearbook/<%= yearbook.id %>"><img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" width="50%" height="auto"></a>
+                            </div>
+  
+                            <div>
+                              <%- yearbook.title.rendered %>
+                            </div>
+                            
+                          </div>
+                        <% }) %>
+                      </div>
+                      
                 </div>
               </div>
             </div>
@@ -335,18 +350,14 @@
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
 
-  <script>
-document.getElementById('toggle-button').addEventListener('click', function() {
-  document.getElementById('sidebar').classList.toggle('retracted');
-  document.getElementById('content').classList.toggle('retracted');
-});
-
-
-  </script>
+  <script src="../assets/js/zoom.js"></script> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script src="../authjs"></script>
   <script src="../assets/js/createaccount.js"></script>
   <script src="../assets/js/logout.js"></script>
+  <script src="../assets/js/fetchstudentlist.js"></script>
+  <script src="../assets/js/fetchcomitteelist.js"></script>
+  <script src="../assets/js/fetchyblist.js"></script>
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
