@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
-  studentNumber: String,
-  email: String,
-  password: String,
+  studentNumber: { type: String, required: true },
+  email: { type: String, required: true },
+  password: { type: String, required: true },
   iv: String,
   key: String,
   consentfilled: {
