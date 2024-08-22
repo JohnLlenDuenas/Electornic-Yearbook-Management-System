@@ -239,6 +239,59 @@ app.post('/create-account', async (req, res) => {
   }
 });
 
+app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    const birthday = student.birthday; // Assuming the birthday is stored in the 'birthday' field
+    if (!birthday) {
+      return res.status(400).json({ message: 'Birthday not found for this student' });
+    }
+
+    console.log('Student Key:', student.key);
+    console.log('Student IV:', student.iv);
+
+    // Validate key and IV
+    if (!student.key || student.key.length !== 64) { // 32 bytes = 64 hex characters
+      return res.status(500).json({ message: 'Encryption key is invalid or missing' });
+    }
+    if (!student.iv || student.iv.length !== 32) { // 16 bytes = 32 hex characters
+      return res.status(500).json({ message: 'Initialization vector (IV) is invalid or missing' });
+    }
+
+    // Convert key and IV from hex to buffer
+    const keyBuffer = Buffer.from(student.key, 'hex');
+    const ivBuffer = Buffer.from(student.iv, 'hex');
+
+    console.log('Key Buffer:', keyBuffer);
+    console.log('IV Buffer:', ivBuffer);
+
+    // Encrypt the birthday to use as the password
+    const cipher = crypto.createCipheriv('aes-256-cbc', keyBuffer, ivBuffer);
+    let encrypted = cipher.update(birthday, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    console.log('Encrypted password:', encrypted);
+
+    // Update the student's password and mark as not changed
+    student.password = encrypted;
+    student.passwordChanged = false;
+
+    await student.save();
+
+    console.log('Password reset successfully for student ID:', id);
+    res.status(200).json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 // Upload CSV route for batch account creation
 app.post('/upload-csv', async (req, res) => {
   const accounts = req.body;
