@@ -15,12 +15,18 @@ document.querySelector('a[href="#students"]').addEventListener('click', async fu
 
 function displayStudents(students) {
   const container = document.querySelector('.align-left');
-  container.innerHTML = '<h4>Student List</h4><ul>' + students.map(student => `
-    <li>
-      ${student.studentNumber} - ${student.email} - ${student.accountType}
-      <button onclick="resetPassword('${student._id}')">Reset Password</button>
-    </li>
-  `).join('') + '</ul>';
+  container.innerHTML = `
+    <h4>Student List</h4>
+    <div class="student-container">
+      ${students.map(student => `
+        <div class="student-card">
+          <p><strong>Student Number:</strong> ${student.studentNumber}</p>
+          <p><strong>Email:</strong> ${student.email}</p>
+          <button class="button button-a button-rouded" onclick="resetPassword('${student._id}')">Reset Password</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 async function resetPassword(studentId) {
@@ -32,14 +38,16 @@ async function resetPassword(studentId) {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json(); // Parse the JSON response
       if (response.ok) {
-        alert('Password reset successfully');
+        alert(data.message);
       } else {
-        console.error('Failed to reset password');
-        alert('Failed to reset password');
+        alert('Failed to reset password: ' + data.message);
       }
     } catch (error) {
       console.error('Error resetting password:', error);
+      alert('An unexpected error occurred.');
     }
   }
 }
+

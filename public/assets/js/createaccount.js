@@ -1,11 +1,13 @@
 $(document).ready(function () {
-    $('#createAccountButton').click(function () {
-      const studentNumber = $('#student_number').val();
-      const email = $('#email').val();
-      const password = $('#password').val();
-      const accountType = $('#acctype').val();
-      const conf = false;
+  $('#createAccountButton').click(function () {
+    const studentNumber = $('#student_number').val();
+    const email = $('#email').val();
+    const birthday = $('#birthday').val(); // Capture birthday as the password
+    const accountType = $('#acctype').val();
+    const conf = false;
 
+    // Ensure all required fields are filled
+    if (studentNumber && email && birthday && accountType) {
       $.ajax({
         url: '/create-account',
         type: 'POST',
@@ -13,7 +15,7 @@ $(document).ready(function () {
         data: JSON.stringify({
           studentNumber: studentNumber,
           email: email,
-          password: password,
+          birthday: birthday, // Send birthday as the password
           accountType: accountType,
           consentfilled: conf,
         }),
@@ -25,7 +27,10 @@ $(document).ready(function () {
           alert('Error creating account');
         }
       });
-    });
+    } else {
+      alert('Please fill out all fields.');
+    }
+  });
     $('#csvFile').change(function (e) {
       const file = e.target.files[0];
       if (file) {

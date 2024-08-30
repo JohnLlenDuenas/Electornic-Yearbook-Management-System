@@ -209,69 +209,80 @@ app.post('/change-password', checkAuthenticated, async (req, res) => {
 
 // Create account route
 app.post('/create-account', async (req, res) => {
-  const { studentNumber, email, password, accountType } = req.body;
+  const { studentNumber, email, birthday, accountType } = req.body; // Accept birthday from request
 
   try {
-    // Encrypt the password
-    const iv = crypto.randomBytes(16); // Initialization vector
-    const encryptionKey = crypto.randomBytes(32); // Must be 32 bytes (256 bits)
+    // Convert the birthday to use as the default password
+    const password = birthday.replace(/-/g, ''); // Use the birthday as the password (in YYYY-MM-DD format)
+    const iv = crypto.randomBytes(16); // IV is 16 bytes
+    const encryptionKey = crypto.randomBytes(32); // Key is 32 bytes (256 bits)
+
+    // Encrypt the password (birthday)
     const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
     let encryptedPassword = cipher.update(password, 'utf8', 'hex');
     encryptedPassword += cipher.final('hex');
+
     const consntf = false;
 
-    // Create a new user document
+    // Create a new student document with the encrypted password, key, and IV
     const newUser = new Student({
       studentNumber,
       email,
       password: encryptedPassword,
+      birthday: birthday.replace(/-/g, ''), // Store birthday in YYYYMMDD format
       accountType,
-      iv: iv.toString('hex'), // Ensure this matches the schema field name
-      key: encryptionKey.toString('hex'), // Ensure this matches the schema field name
-      consentfilled: consntf
+      iv: iv.toString('hex'), // Store IV as hex string
+      key: encryptionKey.toString('hex'), // Store key as hex string
+      consentfilled: consntf,
+      passwordChanged: false,
     });
+
     await newUser.save();
     await logActivity(newUser._id, 'Account created', 'Account created successfully');
     res.status(201).json({ message: 'Account created successfully' });
   } catch (error) {
+    console.error('Error creating account:', error);
     await logActivity(null, 'Error creating account', error.message);
     res.status(500).json({ message: 'Error creating account' });
   }
 });
 
+
 app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   const { id } = req.params;
 
   try {
+    // Find the student by ID
     const student = await Student.findById(id);
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    const birthday = student.birthday; // Assuming the birthday is stored in the 'birthday' field
+    const birthday = student.birthday;
     if (!birthday) {
       return res.status(400).json({ message: 'Birthday not found for this student' });
     }
 
+    // Log the key and IV to check if they're correct
     console.log('Student Key:', student.key);
     console.log('Student IV:', student.iv);
 
-    // Validate key and IV
-    if (!student.key || student.key.length !== 64) { // 32 bytes = 64 hex characters
-      return res.status(500).json({ message: 'Encryption key is invalid or missing' });
+    // Validate the stored key and IV
+    if (!student.key || student.key.length !== 64) { // Key must be 64 hex characters (32 bytes)
+      return res.status(500).json({ message: 'Stored encryption key is invalid or corrupted' });
     }
-    if (!student.iv || student.iv.length !== 32) { // 16 bytes = 32 hex characters
-      return res.status(500).json({ message: 'Initialization vector (IV) is invalid or missing' });
+    if (!student.iv || student.iv.length !== 32) { // IV must be 32 hex characters (16 bytes)
+      return res.status(500).json({ message: 'Stored initialization vector (IV) is invalid or corrupted' });
     }
 
-    // Convert key and IV from hex to buffer
+    // Convert the key and IV from hex to buffer
     const keyBuffer = Buffer.from(student.key, 'hex');
     const ivBuffer = Buffer.from(student.iv, 'hex');
 
     console.log('Key Buffer:', keyBuffer);
     console.log('IV Buffer:', ivBuffer);
 
-    // Encrypt the birthday to use as the password
+    // Encrypt the birthday to use as the new password
     const cipher = crypto.createCipheriv('aes-256-cbc', keyBuffer, ivBuffer);
     let encrypted = cipher.update(birthday, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -282,7 +293,6 @@ app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async
     student.passwordChanged = false;
 
     await student.save();
-
     console.log('Password reset successfully for student ID:', id);
     res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
@@ -290,6 +300,7 @@ app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async
     res.status(500).json({ message: error.message });
   }
 });
+
 
 
 // Upload CSV route for batch account creation
@@ -344,14 +355,20 @@ app.post('/loginroute', async (req, res) => {
 
     if (!user) {
       await logActivity(null, 'Login failed', `Invalid number or password for ${studentNumber}`);
-      return res.status(400).json({ message: 'Invalid number or password' });
+      return res.status(400).json({ message: 'Invalid student number or password' });
     }
 
     const iv = Buffer.from(user.iv, 'hex');
     const key = Buffer.from(user.key, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-    let decryptedPassword = decipher.update(user.password, 'hex', 'utf8');
-    decryptedPassword += decipher.final('utf8');
+
+    let decryptedPassword;
+    try {
+      decryptedPassword = decipher.update(user.password, 'hex', 'utf8');
+      decryptedPassword += decipher.final('utf8');
+    } catch (err) {
+      return res.status(400).json({ message: 'Failed to decrypt password' });
+    }
 
     if (decryptedPassword === password) {
       req.session.user = user;
@@ -390,6 +407,7 @@ app.post('/loginroute', async (req, res) => {
     res.status(500).json({ message: 'Error logging in' });
   }
 });
+
 
 // Logout route
 app.post('/logout', (req, res) => {

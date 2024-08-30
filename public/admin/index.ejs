@@ -175,6 +175,29 @@
   .lead {
     margin: 0;
   }
+  .student-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center the items horizontally */
+  gap: 20px; /* Space between cards */
+}
+
+.student-card {
+  background: #fff; /* White background for the card */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow effect */
+  padding: 20px; /* Space inside the card */
+  width: 300px; /* Fixed width for each card */
+  text-align: center; /* Center text inside the card */
+}
+
+.student-card p {
+  margin: 10px 0; /* Space between paragraphs */
+}
+
+
+
+
     
   </style>
 
@@ -258,20 +281,20 @@
             <form id="createAccForm">
               <div class="col-md-12 mb-3">
                 <div class="form-group">
-                  <label for="email"><h4>Student Number</h4></label>
+                  <label for="student_number"><h4>Student Number</h4></label>
                   <input type="number" class="form-control" id="student_number" placeholder="Enter Student Number" required>
                 </div>
               </div>
               <div class="col-md-12 mb-3">
                 <div class="form-group">
                   <label for="email"><h4>Email</h4></label>
-                  <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter Email" required>
+                  <input type="email" class="form-control" id="email" placeholder="Enter Email" required>
                 </div>
               </div>
               <div class="col-md-12 mb-3">
                 <div class="form-group">
-                  <label for="password"><h4>Password</h4></label>
-                  <input type="password" class="form-control" id="password" placeholder="Password" required>
+                  <label for="birthday"><h4>Birthdate</h4></label>
+                  <input type="date" class="form-control" id="birthday" placeholder="Enter Birthdate" required>
                 </div>
               </div>
               <div class="col-md-12 mb-3">
@@ -279,16 +302,17 @@
                   <label for="acctype"><h4>Account Type</h4></label>
                   <select id="acctype" class="form-control" name="account_type" placeholder="Select Account Type">
                     <option value="student">Student</option>
-                    <option value="comittee">Comittee</option>
+                    <option value="committee">Committee</option>
                   </select>
                 </div>
               </div>
               <div class="col-md-12 mb-3">
                 <div>
-                  <button type="button" class="button button-a button-big button-rouded" id="createAccountButton">Create</button>
+                  <button type="button" class="button button-a button-big button-rounded" id="createAccountButton">Create</button>
                 </div>
               </div>
             </form>
+            
             <form id="createAccForm">
               <div class="col-md-12 mb-3">
                 <div class="form-group">
