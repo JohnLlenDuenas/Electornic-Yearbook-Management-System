@@ -88,7 +88,7 @@
   
         // Send the new password to the server
         $.ajax({
-          url: '/change-password',
+          url: '/change-password-login',
           method: 'POST',
           contentType: 'application/json',
           data: JSON.stringify({ newPassword: newPassword }),

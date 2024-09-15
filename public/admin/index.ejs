@@ -19,6 +19,8 @@
   <link href="../assets/css/style.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
   <style>
     #mobile-blocker {
       display: none;
@@ -196,6 +198,23 @@
 }
 
 
+#logList {
+  max-height: 300px;
+  overflow-y: scroll;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+}
+
+.logList-entry {
+  padding: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.logList:last-child {
+  border-bottom: none;
+}
 
 
     
@@ -258,7 +277,7 @@
       </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#">Settings
+        <a class="nav-link" href="#accsettings">Settings
         <img src="../assets/img/settings.png" alt="Settings" class="Settings">
       </a>
       </li>
@@ -352,22 +371,40 @@
         <div class="container">
           <div class="row">
             <div class="col-sm-12">
-              <div class="box-shadow-full">
-                <div class="align-left">
-                  <h4 >Published Yearbooks</h4>
-                  <div class="gridds">
-                    <% yearbooks.forEach(yearbook => { %>
-                      <div class="grid-row" style="margin: 1%; text-align: center;">
-                        <div>
-                          <a href="/yearbook/<%= yearbook.id %>" style="display: block;">
-                            <img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" class="yearbook-img">
-                          </a>
+              <div style="display: grid;grid-template-columns: 70% 30%;gap: 1%;">
+                <div class="box-shadow-full">
+                  <div class="align-left">
+                    <h4 >Published Yearbooks</h4>
+                    <div class="gridds">
+                      <% yearbooks.forEach(yearbook => { %>
+                        <div class="grid-row" style="margin: 1%; text-align: center;">
+                          <div>
+                            <a href="/yearbook/<%= yearbook.id %>" style="display: block;">
+                              <img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" class="yearbook-img">
+                            </a>
+                          </div>
+                          <div>
+                            <p class="lead">
+                              <%- yearbook.title%></p>
+                          </div>
                         </div>
-                        <div>
-                          <p class="lead"><%- yearbook.title.rendered %></p>
-                        </div>
-                      </div>
-                    <% }) %>
+                      <% }) %>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="grid-row" style=" text-align: center;">
+                  <div class="box-shadow-full">
+                    <div class="align-left">
+                      <h4 >Published Yearbooks</h4>
+                      <ul id="logList"></ul>
+                    </div>
+                  </div>
+                  <div class="box-shadow-full">
+                    <div class="align-left">
+                      <h4 >wala pa</h4>
+                      
+                    </div>
                   </div>
                 </div>
               </div>
@@ -383,7 +420,31 @@
     <h1 style="color: white;">Access Denied</h1>
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
-
+  
+  
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+  
+    // Display the initial logs when the page loads
+    socket.on('initialLogs', function(logs) {
+      logs.forEach(log => displayLog(log));
+    });
+  
+    // Listen for new logs
+    socket.on('newLog', function(logs) {
+      logs.forEach(log => displayLog(log));
+    });
+  
+    function displayLog(log) {
+      const logList = document.getElementById('logList');
+      const logItem = document.createElement('li');
+      logItem.textContent = `${log.timestamp} - ${log.action}: ${log.details}`;
+      logList.appendChild(logItem);
+    }
+  </script>
+  
+  <script src="../assets/js/accountsettings.js"></script>
   <script src="../assets/js/zoom.js"></script> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script src="../auth.js"></script>
@@ -392,7 +453,6 @@
   <script src="../assets/js/fetchstudentlist.js"></script>
   <script src="../assets/js/fetchcomitteelist.js"></script>
   <script src="../assets/js/fetchyblist.js"></script>
-  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="../assets/vendor/php-email-form/validate.js"></script>

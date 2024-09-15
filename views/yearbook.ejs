@@ -296,7 +296,6 @@
   </div>
   <div id="content">
     <div class="center-top-text">
-      <h1><%- yearbook.title.rendered %></h1>
     </div>
     <main id="main">
       <section id="about" class="about-mf sect-pt4 route">
@@ -304,9 +303,11 @@
           <div class="row">
             <div class="col-sm-12">
               <div class="box-shadow-full">
+                <%- bodyContent %>
                 <p class="lead img-fluid" id="yearbook-image">
-                  <%- yearbook.content.rendered %>
+                  
                 </p>
+                
                 
               </div>
             </div>
@@ -333,6 +334,8 @@
     <button id="zoom-in">+</button>
   </div>
   
+  <script src="/js/pdf.min.js"></script>
+  <script src="/js/pdf.worker.js"></script>
   <script src="../assets/js/onloadsidebar.js"></script>
   <script src="../assets/js/zoom.js"></script> 
   <script src="../assets/js/createaccount.js"></script>

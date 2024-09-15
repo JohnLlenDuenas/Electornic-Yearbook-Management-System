@@ -15,7 +15,16 @@ document.querySelector('a[href="#comittee"]').addEventListener('click', async fu
 
 function displayComittee(comittee) {
   const container = document.querySelector('.align-left');
-  container.innerHTML = '<h4>Comittee List</h4><ul>' + comittee.map(student => `
-    <li>${student.studentNumber} - ${student.email} - ${student.accountType}</li>
-  `).join('') + '</ul>';
+  container.innerHTML = `
+    <h4>Student List</h4>
+    <div class="student-container">
+      ${comittee.map(student => `
+        <div class="student-card">
+          <p><strong>Student Number:</strong> ${student.studentNumber}</p>
+          <p><strong>Email:</strong> ${student.email}</p>
+          <button class="button button-a button-rouded" onclick="resetPassword('${student._id}')">Reset Password</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }

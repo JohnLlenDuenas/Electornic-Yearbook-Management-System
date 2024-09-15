@@ -3,34 +3,42 @@ const path = require('path');
 const crypto = require('crypto');
 const axios = require('axios');
 const cron = require('node-cron');
+const cheerio = require('cheerio');
 const session = require('express-session');
 const mongoose = require('mongoose');
 const Student = require('./models/Student');
 const ConsentForm = require('./models/ConsentForm');
 const ActivityLog = require('./models/ActivityLogs'); 
 const Yearbook = require('./models/Yearbooks');
-
+const multer = require('multer');
+const csvParser = require('csv-parser');
+const fs = require('fs');
+const upload = multer({ dest: 'uploads/' });
+const http = require('http');
 const app = express();
+const socketIo = require('socket.io');
+const lastLogTimestamp = new Date();
+
+const server = http.createServer(app);
+const io = require('socket.io')(server);
+
 const port = 3000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 
-// MongoDB connection string
 const uri = "mongodb://localhost:27017/EYBMS_DB";
 
-// Connect to MongoDB using Mongoose
 mongoose.connect(uri).then(() => {
   console.log('Connected to MongoDB');
 }).catch(err => {
   console.error('Error connecting to MongoDB', err);
 });
 
-// Middleware to parse JSON
+
 app.use(express.json());
 
-// Session middleware
 app.use(session({
   secret: '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b', // Change this to a random string
   resave: false,
@@ -38,10 +46,8 @@ app.use(session({
   cookie: { secure: process.env.NODE_ENV === 'production' } // Set secure to true if using https
 }));
 
-// Serve public static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Middleware to check if user is authenticated
 const checkAuthenticated = (req, res, next) => {
   if (req.session.user) {
     next();
@@ -50,7 +56,6 @@ const checkAuthenticated = (req, res, next) => {
   }
 };
 
-// Middleware to ensure role-based access control
 const ensureRole = (roles) => {
   return (req, res, next) => {
     if (req.session.user && roles.includes(req.session.user.accountType)) {
@@ -62,18 +67,9 @@ const ensureRole = (roles) => {
   };
 };
 
-// Function to log activity
-const logActivity = async (userId, action, details = '') => {
-  const log = new ActivityLog({
-    userId: userId,
-    action: action,
-    details: details
-  });
-  await log.save();
-};
 
-// Set up the cron job
-cron.schedule('*/10 * * * *', async () => { // Runs every 10 minutes
+
+cron.schedule('*/1 * * * *', async () => { // Runs every 10 minutes
   try {
     // Fetch and update all yearbooks
     const yearbooks = await Yearbook.find();
@@ -97,6 +93,57 @@ cron.schedule('*/10 * * * *', async () => { // Runs every 10 minutes
   }
 });
 
+
+
+io.on('connection', (socket) => {
+  console.log('Client connected');
+
+  // Send all existing logs when the client connects
+  ActivityLog.find({}, (err, logs) => {
+    if (err) {
+      console.error('Error fetching logs:', err);
+    } else {
+      socket.emit('initialLogs', logs);
+    }
+  });
+
+  // Cron job to check for new logs every minute
+  cron.schedule('*/1 * * * *', async () => {
+    try {
+      // Fetch logs that were created after the last known timestamp
+      const newLogs = await ActivityLog.find({ timestamp: { $gt: lastLogTimestamp } });
+
+      // Update the last log timestamp to the most recent one
+      if (newLogs.length > 0) {
+        lastLogTimestamp = newLogs[newLogs.length - 1].timestamp;
+
+        // Emit the new logs to the connected clients
+        io.emit('newLog', newLogs);
+      }
+    } catch (err) {
+      console.error('Error fetching new logs:', err);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+
+// Emit new logs after they are created
+const logActivity = async (userId, action, details = '') => {
+  const log = new ActivityLog({
+    userId: userId,
+    action: action,
+    details: details,
+    timestamp: new Date() // Make sure to include timestamp if needed
+  });
+  await log.save();
+
+  // Emit the new log to all connected clients in real-time
+  io.emit('newLog', log); // Emit to all connected clients
+};
 
 // Route to serve index.html
 app.get('/', (req, res) => {
@@ -130,6 +177,11 @@ function getCurrentDateTime() {
   const time = now.toLocaleTimeString();
   return `${date} ${time}`;
 }
+
+app.use('/js', express.static(path.join(__dirname, 'public', 'assets', 'js')));
+app.use('/js', express.static(path.join(__dirname, 'public', 'assets', 'js', 'stable')));
+app.use('/fonts', express.static(path.join(__dirname, 'public', 'fonts')));
+
 
 // Consent fill route
 app.post('/consent-fill', async (req, res) => {
@@ -178,7 +230,7 @@ app.post('/consent-fill', async (req, res) => {
   }
 });
 
-app.post('/change-password', checkAuthenticated, async (req, res) => {
+app.post('/change-password-login', checkAuthenticated, async (req, res) => {
   const { newPassword } = req.body;
 
   try {
@@ -206,8 +258,45 @@ app.post('/change-password', checkAuthenticated, async (req, res) => {
     res.status(500).json({ message: 'Error changing password' });
   }
 });
+app.post('/change-password', checkAuthenticated, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
 
-// Create account route
+  try {
+    const user = await Student.findOne({ studentNumber: req.session.user.studentNumber });
+
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    const iv = Buffer.from(user.iv, 'hex');
+    const key = Buffer.from(user.key, 'hex');
+
+    // Decrypt current password
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decryptedPassword = decipher.update(user.password, 'hex', 'utf8');
+    decryptedPassword += decipher.final('utf8');
+
+    if (decryptedPassword !== currentPassword) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Encrypt new password
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    let encryptedPassword = cipher.update(newPassword, 'utf8', 'hex');
+    encryptedPassword += cipher.final('hex');
+
+    // Update password without triggering full validation
+    await Student.findByIdAndUpdate(user._id, { password: encryptedPassword });
+
+    res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
 app.post('/create-account', async (req, res) => {
   const { studentNumber, email, birthday, accountType } = req.body; // Accept birthday from request
 
@@ -229,7 +318,7 @@ app.post('/create-account', async (req, res) => {
       studentNumber,
       email,
       password: encryptedPassword,
-      birthday: birthday.replace(/-/g, ''), // Store birthday in YYYYMMDD format
+      birthday: birthday, // Store birthday in YYYYMMDD format
       accountType,
       iv: iv.toString('hex'), // Store IV as hex string
       key: encryptionKey.toString('hex'), // Store key as hex string
@@ -293,6 +382,7 @@ app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async
     student.passwordChanged = false;
 
     await student.save();
+    await logActivity(student._id, 'Password reset successfully for student ID:'+id, 'Password reset successfully for student ID:'+id+'successfully');
     console.log('Password reset successfully for student ID:', id);
     res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
@@ -301,50 +391,108 @@ app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async
   }
 });
 
-
-
-// Upload CSV route for batch account creation
-app.post('/upload-csv', async (req, res) => {
-  const accounts = req.body;
+app.post('/change-password', checkAuthenticated, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
 
   try {
-    for (const account of accounts) {
-      const { studentNumber, email, password, accountType } = account;
+    // Find the logged-in user based on session
+    const user = await Student.findOne({ studentNumber: req.session.user.studentNumber });
 
-      if (!password) {
-        console.error("Missing password for account:", account);
-        continue; // Skip this account and proceed with others
-      }
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
 
+    // Decrypt current password to verify
+    const iv = Buffer.from(user.iv, 'hex');
+    const key = Buffer.from(user.key, 'hex');
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decryptedPassword = decipher.update(user.password, 'hex', 'utf8');
+    decryptedPassword += decipher.final('utf8');
+
+    if (decryptedPassword !== currentPassword) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Encrypt the new password
+    const newIv = crypto.randomBytes(16);
+    const newEncryptionKey = crypto.randomBytes(32);
+    const cipher = crypto.createCipheriv('aes-256-cbc', newEncryptionKey, newIv);
+    let encryptedPassword = cipher.update(newPassword, 'utf8', 'hex');
+    encryptedPassword += cipher.final('hex');
+
+    // Update user's password
+    user.password = encryptedPassword;
+    user.iv = newIv.toString('hex');
+    user.key = newEncryptionKey.toString('hex');
+    user.passwordChanged = true;
+
+    await user.save();
+
+    // Log the activity
+    await logActivity(user._id, 'Changed Password', 'Password changed successfully');
+    res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Error changing password' });
+  }
+});
+
+
+app.post('/upload-csv', upload.single('csvFile'), (req, res) => {
+  const filePath = path.join(__dirname, 'uploads', req.file.filename);
+
+  const accounts = [];
+  
+  fs.createReadStream(filePath)
+    .pipe(csvParser())
+    .on('data', (row) => {
+      const { studentNumber, email, birthday, accountType } = row;
+      const plainPassword = birthday.replace(/-/g, '');
+      
       const iv = crypto.randomBytes(16);
       const encryptionKey = crypto.randomBytes(32);
       const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
-      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
+      let encryptedPassword = cipher.update(plainPassword, 'utf8', 'hex');
       encryptedPassword += cipher.final('hex');
 
-      const newUser = new Student({
+      accounts.push({
         studentNumber,
         email,
         password: encryptedPassword,
+        birthday,
         accountType,
         iv: iv.toString('hex'),
         key: encryptionKey.toString('hex'),
-        consentfilled: false // Set consentfilled to false for all new accounts by default
+        consentfilled: false,
+        passwordChanged: false
       });
-
-      await newUser.save();
-      await logActivity(newUser._id, 'Account created', 'Account created successfully');
-    }
-    res.status(201).json({ message: 'Accounts created successfully' });
-  } catch (error) {
-    if (error.code === 11000) {
-      res.status(400).json({ message: 'One or more accounts with this student number already exist' });
-    } else {
-      console.error("Error creating accounts:", error);
-      res.status(500).json({ message: 'Error creating accounts' });
-    }
-  }
+    })
+    .on('end', async () => {
+      try {
+        // Save all accounts
+        for (const account of accounts) {
+          const newUser = new Student(account);
+          await newUser.save();
+          await logActivity(newUser._id, 'Account created', 'Account created successfully');
+        }
+        res.status(201).json({ message: 'Accounts created successfully' });
+      } catch (error) {
+        if (error.code === 11000) {
+          res.status(400).json({ message: 'One or more accounts with this student number already exist' });
+        } else {
+          console.error("Error creating accounts:", error);
+          res.status(500).json({ message: 'Error creating accounts' });
+        }
+      }
+      // Delete the temporary file after processing
+      fs.unlinkSync(filePath);
+    })
+    .on('error', (error) => {
+      console.error('Error reading CSV file:', error);
+      res.status(500).json({ message: 'Error reading CSV file' });
+    });
 });
+
 
 // Login route with activity logging
 app.post('/loginroute', async (req, res) => {
@@ -398,7 +546,7 @@ app.post('/loginroute', async (req, res) => {
       await logActivity(user._id, action, `User ${user.studentNumber} logged in as ${user.accountType}`);
       res.status(200).json({ message: 'Login successful', redirectUrl: redirectUrl });
     } else {
-      await logActivity(user._id, 'Login failed', 'Invalid password');
+      await logActivity(user._id, 'Login failed', `User ${user.studentNumber} Invalid studentnumber or password`);
       res.status(400).json({ message: 'Invalid student number or password' });
     }
   } catch (error) {
@@ -439,6 +587,7 @@ app.get('/students', checkAuthenticated, ensureRole(['admin']), async (req, res)
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+  
 });
 app.get('/comittee', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
@@ -449,13 +598,14 @@ app.get('/comittee', checkAuthenticated, ensureRole(['admin']), async (req, res)
   }
 });
 
-//list yb for admin
+
 app.get('/admin/yearbooks', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
-    const response = await axios.get('http://localhost/wordpress/wp-json/wp/v2/yearbook');
+    // Fetch yearbooks from WordPress
+    const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
     const yearbooks = response.data;
 
-    // Explicitly define the path to render the EJS template
+    // Render the yearbooks in the admin dashboard
     res.render(path.join(__dirname, 'public', 'admin', 'index'), { yearbooks });
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
@@ -464,36 +614,36 @@ app.get('/admin/yearbooks', checkAuthenticated, ensureRole(['admin']), async (re
 });
 
 
+
 app.get('/yearbook/:id', async (req, res) => {
   try {
     const yearbookId = req.params.id;
-    const response = await axios.get(`http://localhost/wordpress/wp-json/wp/v2/yearbook/${yearbookId}`);
-    const yearbookData = response.data;
+    const url = `http://localhost/wordpress/3d-flip-book/${yearbookId}/`;
 
-    console.log('Yearbook Data:', yearbookData);
+    // Fetch the HTML content of the page
+    const response = await axios.get(url);
+    const html = response.data;
 
-    await Yearbook.findOneAndUpdate(
-      { yearbookId: yearbookId },
-      {
-        title: yearbookData.title.rendered,
-        content: yearbookData.content.rendered,
-        status: yearbookData.status
-      },
-      { new: true }
-    );
+    // Load the HTML into Cheerio (which works like jQuery for server-side)
+    const $ = cheerio.load(html);
 
-    console.log('Yearbook updated successfully');
-    res.render('yearbook', { yearbook: yearbookData });
+    // Extract only the content of the <body> tag
+    const bodyContent = $('body').html(); // Gets the inner HTML of the body tag
+
+    // Render the EJS template with the body content
+    res.render('yearbook', { bodyContent });
+
+    // Optionally log the activity
+    await logActivity(yearbookId._id, 'Admin View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
+
   } catch (error) {
-    console.error('Error updating yearbook:', error);
-    if (error.response) {
-      console.error('Response data:', error.response.data);
-      console.error('Response status:', error.response.status);
-      console.error('Response headers:', error.response.headers);
-    }
-    res.status(500).json({ message: 'Error updating yearbook' });
+    console.error('Error fetching yearbook content:', error);
+    res.status(500).json({ message: 'Error fetching yearbook' });
   }
 });
+
+
+
 
 
 
@@ -531,6 +681,7 @@ app.get('/studentyearbook/:id', async (req, res) => {
 
     console.log('Yearbook updated successfully');
     res.render('studentyearbook', { yearbook: yearbookData });
+    await logActivity(yearbookId._id, 'Student View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
   } catch (error) {
     console.error('Error updating yearbook:', error);
     if (error.response) {
@@ -542,12 +693,26 @@ app.get('/studentyearbook/:id', async (req, res) => {
   }
 });
 
+async function fetchFlipbooks() {
+  try {
+    const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks', {
+      withCredentials: true,
+    });
+    console.log('Flipbooks data:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching flipbooks:', error);
+    return [];
+  }
+}
+
+// Example of calling the function
+fetchFlipbooks().then(flipbooks => {
+  // Now you have the flipbooks data
+  console.log(flipbooks);
+});
 
 
-
-
-
-// Start the server
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Listening at http://localhost:${port}`);
 });
