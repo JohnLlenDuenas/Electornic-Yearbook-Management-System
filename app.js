@@ -6,10 +6,11 @@ const cron = require('node-cron');
 const cheerio = require('cheerio');
 const session = require('express-session');
 const mongoose = require('mongoose');
+const { ObjectId } = mongoose.Types;
 const Student = require('./models/Student');
 const ConsentForm = require('./models/ConsentForm');
 const ActivityLog = require('./models/ActivityLogs'); 
-const Yearbook = require('./models/Yearbooks');
+const Yearbook = require('./models/Yearbook');
 const multer = require('multer');
 const csvParser = require('csv-parser');
 const fs = require('fs');
@@ -132,18 +133,26 @@ io.on('connection', (socket) => {
 
 
 // Emit new logs after they are created
-const logActivity = async (userId, action, details = '') => {
-  const log = new ActivityLog({
-    userId: userId,
-    action: action,
-    details: details,
-    timestamp: new Date() // Make sure to include timestamp if needed
-  });
-  await log.save();
+async function logActivity(userId, action, details) {
+  try {
+    // Convert userId to ObjectId if it's not already one
+    const objectId = ObjectId.isValid(userId) ? new ObjectId(userId) : userId;
 
-  // Emit the new log to all connected clients in real-time
-  io.emit('newLog', log); // Emit to all connected clients
-};
+    // Assuming ActivityLog is your Mongoose model
+    const log = new ActivityLog({
+      userId: objectId, // Ensure this is correctly formatted as ObjectId
+      action,
+      details,
+      timestamp: new Date(),
+    });
+
+    await log.save();
+    console.log('Activity logged successfully');
+  } catch (error) {
+    console.error('Error logging activity:', error);
+    throw error; // Rethrow the error if necessary for further handling
+  }
+}
 
 // Route to serve index.html
 app.get('/', (req, res) => {
@@ -170,6 +179,7 @@ app.use('/student', checkAuthenticated, ensureRole(['student']), express.static(
 app.use('/committee', checkAuthenticated, ensureRole(['committee']), express.static(path.join(__dirname, 'public', 'committee')));
 app.use('/consent', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'consent')));
 
+app.use('/appointment', express.static(path.join(__dirname, 'public', 'appointment')));
 // Utility function to get current date and time
 function getCurrentDateTime() {
   const now = new Date();
@@ -539,7 +549,7 @@ app.post('/loginroute', async (req, res) => {
         redirectUrl = '/admin/yearbooks';
         action = 'Logged in as admin';
       } else if (user.accountType === 'committee') {
-        redirectUrl = '../committee/index.html';
+        redirectUrl = '/comittee/yearbooks';
         action = 'Logged in as committee';
       }
 
@@ -598,27 +608,45 @@ app.get('/comittee', checkAuthenticated, ensureRole(['admin']), async (req, res)
   }
 });
 
-
+//admin part
 app.get('/admin/yearbooks', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     // Fetch yearbooks from WordPress
     const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
     const yearbooks = response.data;
 
-    // Render the yearbooks in the admin dashboard
-    res.render(path.join(__dirname, 'public', 'admin', 'index'), { yearbooks });
+    // Save yearbooks to MongoDB
+    for (const yearbook of yearbooks) {
+      // Check if the yearbook already exists in the database
+      const existingYearbook = await Yearbook.findOne({ id: yearbook.id });
+
+      if (!existingYearbook) {
+        // Save new yearbook to MongoDB
+        await Yearbook.create({
+          id: yearbook.id,
+          title: yearbook.title,
+          status: 'pending', // Default status
+        });
+      }
+    }
+
+    // Fetch all yearbooks from MongoDB, grouped by status
+    const publishedYearbooks = await Yearbook.find({ status: 'published' });
+    const pendingYearbooks = await Yearbook.find({ status: 'pending' });
+
+    // Render the admin dashboard with published and pending yearbooks
+    res.render(path.join(__dirname, 'public', 'admin', 'index'), { publishedYearbooks, pendingYearbooks });
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
     res.status(500).json({ message: 'Error fetching yearbooks' });
   }
 });
 
-
-
 app.get('/yearbook/:id', async (req, res) => {
   try {
     const yearbookId = req.params.id;
     const url = `http://localhost/wordpress/3d-flip-book/${yearbookId}/`;
+    
 
     // Fetch the HTML content of the page
     const response = await axios.get(url);
@@ -642,19 +670,119 @@ app.get('/yearbook/:id', async (req, res) => {
   }
 });
 
+// Publish a yearbook by changing its status to 'published'
+app.post('/yearbook/:id/publish', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+  try {
+    const yearbookId = req.params.id;
+
+    // Update the yearbook status to 'published'
+    await Yearbook.findOneAndUpdate({ id: yearbookId }, { status: 'published' });
+
+    // Optionally log the activity
+    await logActivity(yearbookId._id, 'Yearbook Published', `Yearbook ${yearbookId} published successfully`);
+
+    res.redirect('/admin/yearbooks'); // Redirect back to the yearbooks page
+  } catch (error) {
+    console.error('Error publishing yearbook:', error);
+    res.status(500).json({ message: 'Error publishing yearbook' });
+  }
+});
 
 
+//comittee part
+
+app.get('/comittee/yearbooks', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+  try {
+    // Fetch yearbooks from WordPress
+    const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
+    const yearbooks = response.data;
+
+    // Save yearbooks to MongoDB
+    for (const yearbook of yearbooks) {
+      // Check if the yearbook already exists in the database
+      const existingYearbook = await Yearbook.findOne({ id: yearbook.id });
+
+      if (!existingYearbook) {
+        // Save new yearbook to MongoDB
+        await Yearbook.create({
+          id: yearbook.id,
+          title: yearbook.title,
+          status: 'pending', // Default status
+        });
+      }
+    }
+
+    // Fetch all yearbooks from MongoDB, grouped by status
+    const publishedYearbooks = await Yearbook.find({ status: 'published' });
+    const pendingYearbooks = await Yearbook.find({ status: 'pending' });
+
+    // Render the admin dashboard with published and pending yearbooks
+    res.render(path.join(__dirname, 'public', 'comittee', 'index'), { publishedYearbooks, pendingYearbooks });
+  } catch (error) {
+    console.error('Error fetching yearbooks:', error);
+    res.status(500).json({ message: 'Error fetching yearbooks' });
+  }
+});
+// for comittee fetch yearbooks
+
+app.get('/comitteeyearbook/:id', async (req, res) => {
+  try {
+    const yearbookId = req.params.id;
+    const url = `http://localhost/wordpress/3d-flip-book/${yearbookId}/`;
+    
+
+    // Fetch the HTML content of the page
+    const response = await axios.get(url);
+    const html = response.data;
+
+    // Load the HTML into Cheerio (which works like jQuery for server-side)
+    const $ = cheerio.load(html);
+
+    // Extract only the content of the <body> tag
+    const bodyContent = $('body').html(); // Gets the inner HTML of the body tag
+
+    // Render the EJS template with the body content
+    res.render('comitteeyearbook', { bodyContent });
+
+    // Optionally log the activity
+    await logActivity(yearbookId._id, 'Admin View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
+
+  } catch (error) {
+    console.error('Error fetching yearbook content:', error);
+    res.status(500).json({ message: 'Error fetching yearbook' });
+  }
+});
 
 
 
 //Fetch List Yb Student
 app.get('/student/yearbooks', checkAuthenticated, ensureRole(['student']), async (req, res) => {
   try {
-    const response = await axios.get('http://localhost/wordpress/wp-json/wp/v2/yearbook');
+    // Fetch yearbooks from WordPress
+    const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
     const yearbooks = response.data;
 
-    // Explicitly define the path to render the EJS template
-    res.render(path.join(__dirname, 'public', 'student', 'index'), { yearbooks });
+    // Save yearbooks to MongoDB
+    for (const yearbook of yearbooks) {
+      // Check if the yearbook already exists in the database
+      const existingYearbook = await Yearbook.findOne({ id: yearbook.id });
+
+      if (!existingYearbook) {
+        // Save new yearbook to MongoDB
+        await Yearbook.create({
+          id: yearbook.id,
+          title: yearbook.title,
+          status: 'pending', // Default status
+        });
+      }
+    }
+
+    // Fetch all yearbooks from MongoDB, grouped by status
+    const publishedYearbooks = await Yearbook.find({ status: 'published' });
+    const pendingYearbooks = await Yearbook.find({ status: 'pending' });
+
+    // Render the admin dashboard with published and pending yearbooks
+    res.render(path.join(__dirname, 'public', 'student', 'index'), { publishedYearbooks, pendingYearbooks });
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
     res.status(500).json({ message: 'Error fetching yearbooks' });
@@ -664,32 +792,28 @@ app.get('/student/yearbooks', checkAuthenticated, ensureRole(['student']), async
 app.get('/studentyearbook/:id', async (req, res) => {
   try {
     const yearbookId = req.params.id;
-    const response = await axios.get(`http://localhost/wordpress/wp-json/wp/v2/yearbook/${yearbookId}`);
-    const yearbookData = response.data;
+    const url = `http://localhost/wordpress/3d-flip-book/${yearbookId}/`;
+    
 
-    console.log('Yearbook Data:', yearbookData);
+    // Fetch the HTML content of the page
+    const response = await axios.get(url);
+    const html = response.data;
 
-    await Yearbook.findOneAndUpdate(
-      { yearbookId: yearbookId },
-      {
-        title: yearbookData.title.rendered,
-        content: yearbookData.content.rendered,
-        status: yearbookData.status
-      },
-      { new: true }
-    );
+    // Load the HTML into Cheerio (which works like jQuery for server-side)
+    const $ = cheerio.load(html);
 
-    console.log('Yearbook updated successfully');
-    res.render('studentyearbook', { yearbook: yearbookData });
+    // Extract only the content of the <body> tag
+    const bodyContent = $('body').html(); // Gets the inner HTML of the body tag
+
+    // Render the EJS template with the body content
+    res.render('studentyearbook', { bodyContent });
+
+    // Optionally log the activity
     await logActivity(yearbookId._id, 'Student View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
+
   } catch (error) {
-    console.error('Error updating yearbook:', error);
-    if (error.response) {
-      console.error('Response data:', error.response.data);
-      console.error('Response status:', error.response.status);
-      console.error('Response headers:', error.response.headers);
-    }
-    res.status(500).json({ message: 'Error updating yearbook' });
+    console.error('Error fetching yearbook content:', error);
+    res.status(500).json({ message: 'Error fetching yearbook' });
   }
 });
 

@@ -247,13 +247,13 @@
       <h1 class="logo">
         <a href="" style="font-size: 65%;">
           <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
-          Admin
+          Committee
         </a>
       </h1>
     </div>
   </header>
 
-  
+   
   <div id="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item">
@@ -272,11 +272,6 @@
       </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="#" data-toggle="modal" data-target="#createAccModal">Create Acct
-        <img src="../assets/img/createacct.png" alt="Committee" class="Committee">
-      </a>
-      </li>
-      <li class="nav-item">
         <a class="nav-link" href="#accsettings">Settings
         <img src="../assets/img/settings.png" alt="Settings" class="Settings">
       </a>
@@ -286,83 +281,6 @@
         </li>
     </ul>
   </div>
-  <div class="modal fade" id="createAccModal" tabindex="-1" aria-labelledby="createAccModalLabel" aria-hidden="true" style="padding-top: 10%;">
-    <div class="modal-dialog" style="max-width: 50%;">
-      <div class="modal-content box-shadow-full">
-        <div class="modal-header">
-          <h5 class="title-left">Create Account</h5>
-          <button type="button" class="button button-rouded" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div>
-            <form id="createAccForm">
-              <div class="col-md-12 mb-3">
-                <div class="form-group">
-                  <label for="student_number"><h4>Student Number</h4></label>
-                  <input type="number" class="form-control" id="student_number" placeholder="Enter Student Number" required>
-                </div>
-              </div>
-              <div class="col-md-12 mb-3">
-                <div class="form-group">
-                  <label for="email"><h4>Email</h4></label>
-                  <input type="email" class="form-control" id="email" placeholder="Enter Email" required>
-                </div>
-              </div>
-              <div class="col-md-12 mb-3">
-                <div class="form-group">
-                  <label for="birthday"><h4>Birthdate</h4></label>
-                  <input type="date" class="form-control" id="birthday" placeholder="Enter Birthdate" required>
-                </div>
-              </div>
-              <div class="col-md-12 mb-3">
-                <div class="form-group">
-                  <label for="acctype"><h4>Account Type</h4></label>
-                  <select id="acctype" class="form-control" name="account_type" placeholder="Select Account Type">
-                    <option value="student">Student</option>
-                    <option value="committee">Committee</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-12 mb-3">
-                <div>
-                  <button type="button" class="button button-a button-big button-rounded" id="createAccountButton">Create</button>
-                </div>
-              </div>
-            </form>
-            
-            <form id="createAccForm">
-              <div class="col-md-12 mb-3">
-                <div class="form-group">
-                  <label for="csvFile"><h4>Upload CSV File</h4></label>
-                  <input type="file" class="form-control" id="csvFile" accept=".csv">
-                </div>
-              </div>
-              <div class="col-md-12 mb-3">
-                <table id="csvPreviewTable" class="table table-striped" style="display: none;">
-                  <thead>
-                    <tr>
-                      <th>Student Number</th>
-                      <th>Email</th>
-                      <th>Password</th>
-                      <th>Account Type</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-              <div class="col-md-12 mb-3">
-                <div>
-                  <button type="button" class="button button-a button-big button-rouded" id="uploadCsvButton">Upload CSV</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   
   <div id="content">
@@ -371,8 +289,11 @@
         <div class="container">
           <div class="row">
             <div class="col-sm-12">
+              
               <div style="display: grid;grid-template-columns: 70% 30%;gap: 1%;">
                 <div class="box-shadow-full">
+                  <button type="button" class=" nav-link button button-a button-rouded" style="width: 100%;">Create</button>
+                  <br><br>
                   <div class="align-left">
                     <h4>Published Yearbooks</h4>
                     <div class="gridds">
@@ -413,14 +334,15 @@
                 </div>
                 
                 
-                <div class="grid-row" style=" text-align: center;">
-                  <div class="box-shadow-full">
+                <div class="grid-row" style=" text-align: center; height: 50%;">
+                  <div class="box-shadow-full" style="padding: 5%;">
+                    <h4 >Published Yearbooks</h4>
                     <div class="align-left">
-                      <h4 >Published Yearbooks</h4>
-                      <ul id="logList"></ul>
+                      
                     </div>
                   </div>
-                  <div class="box-shadow-full">
+                  <div class="box-shadow-full" style="padding: 5%;">
+
                     <div class="align-left">
                       <h4 >wala pa</h4>
                       
@@ -467,7 +389,7 @@
   <script src="../assets/js/accountsettings.js"></script>
   <script src="../assets/js/zoom.js"></script> 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-  <script src="../auth.js"></script>
+  <script src="../authjs"></script>
   <script src="../assets/js/createaccount.js"></script>
   <script src="../assets/js/logout.js"></script>
   <script src="../assets/js/fetchstudentlist.js"></script>

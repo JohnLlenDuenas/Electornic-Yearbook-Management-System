@@ -371,7 +371,6 @@
         <i class="bi bi-list mobile-nav-toggle"></i>
       </nav>
       <div class="d-flex align-items-center">
-        <button class="button button-a  button-rouded" id="btnshare">Share Now</button>
         <h1 class="logo">
           <a href="" style="font-size: 65%;">
             <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
@@ -401,7 +400,6 @@
 
   <div id="content">
     <div class="center-top-text">
-      <h1><%- yearbook.title.rendered %></h1>
     </div>
     <main id="main">
       <section id="about" class="about-mf sect-pt4 route">
@@ -409,9 +407,11 @@
           <div class="row">
             <div class="col-sm-12">
               <div class="box-shadow-full">
+                <%- bodyContent %>
                 <p class="lead img-fluid" id="yearbook-image">
-                  <%- yearbook.content.rendered %>
+                  
                 </p>
+                
                 
               </div>
             </div>
@@ -420,6 +420,7 @@
       </section>
     </main>
   </div>
+
 
   <div id="mobile-blocker">
     <h1 style="color: white;">Access Denied</h1>
@@ -464,6 +465,7 @@
   <script src="../assets/js/onloadsidebar.js"></script>
   <script src="../assets/js/zoom.js"></script> 
   <script src="../assets/js/share.js"></script>
+  <script src="../assets/js/logout.js"></script>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="../assets/vendor/php-email-form/validate.js"></script>
