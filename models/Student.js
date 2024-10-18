@@ -4,12 +4,20 @@ const studentSchema = new mongoose.Schema({
   studentNumber: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true },
-  iv: String, // Initialization vector for AES encryption
-  key: String, // Optional: if you are using a unique key per user
+  iv: String,
+  key: String,
   consentfilled: { type: Boolean, default: false },
   passwordChanged: { type: Boolean, default: false },
-  accountType: String,
-  birthday: { type: String, required: true } // Store birthday as YYYYMMDD
+  accountType: { type: String, required: true },  // Admin, student, etc.
+  birthday: { 
+    type: String, 
+    required: function() {
+      // Require birthday only for non-admin users
+      return this.accountType !== 'admin'; 
+    } 
+  },
+  twoFactorSecret: String, // Store the TOTP secret
+  twoFactorEnabled: { type: Boolean, default: false } // Flag for 2FA
 });
 
 const Student = mongoose.model('Student', studentSchema);

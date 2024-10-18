@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const axios = require('axios');
 const cron = require('node-cron');
+const bodyParser = require('body-parser');
 const cheerio = require('cheerio');
 const session = require('express-session');
 const mongoose = require('mongoose');
@@ -19,6 +20,8 @@ const http = require('http');
 const app = express();
 const socketIo = require('socket.io');
 const lastLogTimestamp = new Date();
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
 
 const server = http.createServer(app);
 const io = require('socket.io')(server);
@@ -27,6 +30,33 @@ const port = 3000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+
+
+const onlineUsers = {
+  student: 0,
+  committee: 0,
+  admin: 0
+};
+function emitOnlineUsers() {
+  io.emit('updateOnlineUsers', onlineUsers);
+}
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Whenever a user connects or disconnects, update online users
+io.on('connection', (socket) => {
+  // Logic to handle user connection and update `onlineUsers` object
+  // e.g., when a student connects:
+  onlineUsers.student++;
+  emitOnlineUsers();
+
+  socket.on('disconnect', () => {
+      // Logic to update `onlineUsers` when a user disconnects
+      onlineUsers.student--;
+      emitOnlineUsers();
+  });
+});
 
 
 const uri = "mongodb://localhost:27017/EYBMS_DB";
@@ -67,33 +97,6 @@ const ensureRole = (roles) => {
     }
   };
 };
-
-
-
-cron.schedule('*/1 * * * *', async () => { // Runs every 10 minutes
-  try {
-    // Fetch and update all yearbooks
-    const yearbooks = await Yearbook.find();
-    for (const yearbook of yearbooks) {
-      const response = await axios.get(`http://localhost/wordpress/wp-json/wp/v2/yearbook/${yearbook.yearbookId}`);
-      const yearbookData = response.data;
-
-      await Yearbook.findOneAndUpdate(
-        { yearbookId: yearbook.yearbookId },
-        {
-          title: yearbookData.title.rendered,
-          content: yearbookData.content.rendered,
-          status: yearbookData.status
-        },
-        { new: true }
-      );
-    }
-    console.log('Yearbooks updated successfully');
-  } catch (error) {
-    console.error('Error updating yearbooks:', error);
-  }
-});
-
 
 
 io.on('connection', (socket) => {
@@ -156,12 +159,29 @@ async function logActivity(userId, action, details) {
 
 // Route to serve index.html
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  if(req.session.user==null){
+    res.render(path.join(__dirname, 'public','index'));
+  }else{
+    if(req.session.user.accountType === 'admin'){
+      res.redirect('/admin/yearbooks');
+    }if(req.session.user.account === 'student'){  
+      res.redirect('/student/yearbooks');
+    }
+    if(req.session.user.account ==='committee'){
+      res.redirect('/comittee/yearbooks');
+    }
+  }
+  
+
+  console.log(req.session.user);
 });
 
 // Route to serve login.html
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+
+  res.render(path.join(__dirname, 'public', 'login'));
+  
+  
 });
 
 // API to check authentication status
@@ -179,7 +199,6 @@ app.use('/student', checkAuthenticated, ensureRole(['student']), express.static(
 app.use('/committee', checkAuthenticated, ensureRole(['committee']), express.static(path.join(__dirname, 'public', 'committee')));
 app.use('/consent', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'consent')));
 
-app.use('/appointment', express.static(path.join(__dirname, 'public', 'appointment')));
 // Utility function to get current date and time
 function getCurrentDateTime() {
   const now = new Date();
@@ -191,6 +210,7 @@ function getCurrentDateTime() {
 app.use('/js', express.static(path.join(__dirname, 'public', 'assets', 'js')));
 app.use('/js', express.static(path.join(__dirname, 'public', 'assets', 'js', 'stable')));
 app.use('/fonts', express.static(path.join(__dirname, 'public', 'fonts')));
+
 
 
 // Consent fill route
@@ -504,9 +524,106 @@ app.post('/upload-csv', upload.single('csvFile'), (req, res) => {
 });
 
 
+app.get('/setup-2fa', async (req, res) => {
+  const sessionUser = req.session.user;
+
+  if (!sessionUser || sessionUser.accountType !== 'admin') {
+    return res.status(403).send('Unauthorized access');
+  }
+
+  try {
+    const user = await Student.findOne({ studentNumber: sessionUser.studentNumber });
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    // Generate 2FA secret
+    const secret = speakeasy.generateSecret({ length: 20 });
+    console.log("Generated secret for user:", secret.base32);
+
+    // Generate otpauth URL manually for QR code generation
+    const otpauthUrl = `otpauth://totp/ElectronicYearbookManagementSystem:${user.studentNumber}?secret=${secret.base32}&issuer=ElectronicYearbookManagementSystem`;
+
+    // Generate QR code for the secret
+    const qrCodeUrl = await QRCode.toDataURL(otpauthUrl);
+    console.log("Generated QR Code URL:", qrCodeUrl);
+
+    // Save the secret in the user's record in the database (base32 encoding)
+    user.twoFactorSecret = secret.base32;
+    await user.save();
+    console.log("Saved secret for user:", user.studentNumber, user.twoFactorSecret);
+
+    // Render the setup page with the QR code
+    res.render('setup-2fa', { qrCodeUrl });
+
+  } catch (error) {
+    console.error('Error setting up 2FA:', error);
+    res.status(500).json({ message: 'Error setting up 2FA' });
+  }
+});
+
+app.post('/verify-2fa', async (req, res) => {
+  console.log('Request body:', req.body);  // Log entire body for debugging
+  const { token } = req.body;
+  const sessionUser = req.session.user;
+
+  if (!sessionUser || sessionUser.accountType !== 'admin') {
+    return res.status(403).send('Unauthorized access');
+  }
+
+  try {
+    const user = await Student.findOne({ studentNumber: sessionUser.studentNumber });
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    console.log("Stored secret for verification:", user.twoFactorSecret);
+
+    const generatedToken = speakeasy.totp({
+      secret: user.twoFactorSecret,
+      encoding: 'base32'
+    });
+    console.log('Expected token:', generatedToken);
+    console.log('Received token:', token);
+
+    if (!token) {
+      console.log("No token provided");
+      return res.status(400).json({ message: 'Token is required' });
+    }
+
+    // Verify the provided TOTP token
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: 'base32',
+      token: token,
+      window: 1
+    });
+
+    if (verified) {
+      user.twoFactorEnabled = true;
+      await user.save();
+
+      console.log("2FA setup successful for user:", user.studentNumber);
+      return res.status(200).json({ message: '2FA setup complete', redirectUrl: '/admin/yearbooks' });
+    } else {
+      console.log("Invalid 2FA token for user:", user.studentNumber);
+      return res.status(400).json({ message: 'Invalid 2FA token', redirectUrl: '/admin/yearbooks' });
+    }
+
+  } catch (error) {
+    console.error('Error verifying 2FA:', error);
+    res.status(500).json({ message: 'Error verifying 2FA' });
+  }
+});
+
+
+
+
 // Login route with activity logging
 app.post('/loginroute', async (req, res) => {
-  const { studentNumber, password } = req.body;
+  const { studentNumber, password, token } = req.body;
 
   try {
     const user = await Student.findOne({ studentNumber });
@@ -516,6 +633,7 @@ app.post('/loginroute', async (req, res) => {
       return res.status(400).json({ message: 'Invalid student number or password' });
     }
 
+    // Decrypt the stored password
     const iv = Buffer.from(user.iv, 'hex');
     const key = Buffer.from(user.key, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
@@ -529,6 +647,28 @@ app.post('/loginroute', async (req, res) => {
     }
 
     if (decryptedPassword === password) {
+      // **2FA Logic for Admins**
+      if (user.accountType === 'admin' && user.twoFactorEnabled) {
+        // If the token is not provided, inform the client that it's required
+        if (!token) {
+          return res.status(200).json({ message: '2FA required' });
+        }
+
+        // Verify the provided TOTP token
+        const verified = speakeasy.totp.verify({
+          secret: user.twoFactorSecret,
+          encoding: 'base32',
+          token: token,
+          window: 1  
+        });
+
+        // Handle invalid token
+        if (!verified) {
+          return res.status(400).json({ message: 'Invalid 2FA token' });
+        }
+      }
+
+      // If 2FA check passed (or not needed), proceed to login
       req.session.user = user;
 
       let redirectUrl = '';
@@ -538,6 +678,7 @@ app.post('/loginroute', async (req, res) => {
         if (!user.passwordChanged) {
           redirectUrl = '../change_password/index.html';
           action = 'Student redirected to change password page';
+          
         } else if (!user.consentfilled) {
           redirectUrl = '../consent/index.html';
           action = 'Student redirected to consent form';
@@ -545,37 +686,64 @@ app.post('/loginroute', async (req, res) => {
           redirectUrl = '/student/yearbooks';
           action = 'Logged in as student';
         }
+        yearbooks();
       } else if (user.accountType === 'admin') {
         redirectUrl = '/admin/yearbooks';
         action = 'Logged in as admin';
+        yearbooks();
       } else if (user.accountType === 'committee') {
         redirectUrl = '/comittee/yearbooks';
         action = 'Logged in as committee';
+        yearbooks();
       }
 
+      // Log activity and return success
       await logActivity(user._id, action, `User ${user.studentNumber} logged in as ${user.accountType}`);
-      res.status(200).json({ message: 'Login successful', redirectUrl: redirectUrl });
+      return res.status(200).json({ message: 'Login successful', redirectUrl: redirectUrl });
     } else {
-      await logActivity(user._id, 'Login failed', `User ${user.studentNumber} Invalid studentnumber or password`);
-      res.status(400).json({ message: 'Invalid student number or password' });
+      await logActivity(user._id, 'Login failed', `User ${user.studentNumber} Invalid student number or password`);
+      return res.status(400).json({ message: 'Invalid student number or password' });
     }
   } catch (error) {
     console.error("Error logging in:", error);
     await logActivity(null, 'Error logging in', error.message);
-    res.status(500).json({ message: 'Error logging in' });
+    return res.status(500).json({ message: 'Error logging in' });
   }
 });
 
 
+
+
+
+
+
+
 // Logout route
 app.post('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error logging out' });
+  if (req.session.user) {
+    const accountType = req.session.user.accountType;
+
+    // Decrease the count for the appropriate accountType
+    if (accountType === 'student') {
+      onlineUsers.student = Math.max(0, onlineUsers.student - 1);
+    } else if (accountType === 'committee') {
+      onlineUsers.committee = Math.max(0, onlineUsers.committee - 1);
+    } else if (accountType === 'admin') {
+      onlineUsers.admin = Math.max(0, onlineUsers.admin - 1);
     }
-    res.status(200).json({ message: 'Logout successful' });
-  });
+
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error logging out' });
+      }
+      res.status(200).json({ message: 'Logout successful' });
+    });
+  } else {
+    res.status(400).json({ message: 'No user logged in' });
+  }
 });
+
+
 
 // Fetch consent form data
 app.get('/consentformfetch', checkAuthenticated, ensureRole(['admin', 'committee']), async (req, res) => {
@@ -601,7 +769,7 @@ app.get('/students', checkAuthenticated, ensureRole(['admin']), async (req, res)
 });
 app.get('/comittee', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
-    const comittee = await Student.find({ accountType: 'admin' });
+    const comittee = await Student.find({ accountType: 'comittee' });
     res.json(comittee);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -611,43 +779,37 @@ app.get('/comittee', checkAuthenticated, ensureRole(['admin']), async (req, res)
 //admin part
 app.get('/admin/yearbooks', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
-    // Fetch yearbooks from WordPress
-    const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
-    const yearbooks = response.data;
+    yearbooks();
+    const user = await Student.findById(req.session.user);
+    const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
+      .sort({ views: -1 }) // Sort by views in descending order
+      .limit(3); // Limit to 3 yearbooks
 
-    // Save yearbooks to MongoDB
-    for (const yearbook of yearbooks) {
-      // Check if the yearbook already exists in the database
-      const existingYearbook = await Yearbook.findOne({ id: yearbook.id });
-
-      if (!existingYearbook) {
-        // Save new yearbook to MongoDB
-        await Yearbook.create({
-          id: yearbook.id,
-          title: yearbook.title,
-          status: 'pending', // Default status
-        });
-      }
-    }
-
-    // Fetch all yearbooks from MongoDB, grouped by status
     const publishedYearbooks = await Yearbook.find({ status: 'published' });
     const pendingYearbooks = await Yearbook.find({ status: 'pending' });
 
-    // Render the admin dashboard with published and pending yearbooks
-    res.render(path.join(__dirname, 'public', 'admin', 'index'), { publishedYearbooks, pendingYearbooks });
+    // Pass onlineUsers to the template
+    res.render(path.join(__dirname, 'public', 'admin', 'index'), { publishedYearbooks, pendingYearbooks, onlineUsers,mostViewedYearbooks,user  });
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
     res.status(500).json({ message: 'Error fetching yearbooks' });
   }
 });
 
+
+
 app.get('/yearbook/:id', async (req, res) => {
   try {
     const yearbookId = req.params.id;
     const url = `http://localhost/wordpress/3d-flip-book/${yearbookId}/`;
     
-
+    const yearbook = await Yearbook.findOne({ id: yearbookId });
+    if (!yearbook) {
+      return res.status(404).json({ message: 'Yearbook not found' });
+    }
+    yearbook.views += 1;
+    yearbook.lastViewed = Date.now();
+    await yearbook.save();
     // Fetch the HTML content of the page
     const response = await axios.get(url);
     const html = response.data;
@@ -670,6 +832,31 @@ app.get('/yearbook/:id', async (req, res) => {
   }
 });
 
+
+cron.schedule('0 0 * * *', async () => {
+  try {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    // Find yearbooks that haven't been viewed in over 6 months and are still published
+    const inactiveYearbooks = await Yearbook.find({
+      lastViewed: { $lt: sixMonthsAgo },
+      status: 'published'
+    });
+
+    // Unpublish these yearbooks by setting their status to 'pending'
+    inactiveYearbooks.forEach(async (yearbook) => {
+      yearbook.status = 'pending';
+      await yearbook.save();
+      console.log(`Yearbook ${yearbook.title} has been unpublished due to inactivity.`);
+    });
+  } catch (error) {
+    console.error('Error running cron job to unpublish inactive yearbooks:', error);
+  }
+});
+
+
+
 // Publish a yearbook by changing its status to 'published'
 app.post('/yearbook/:id/publish', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
@@ -685,6 +872,23 @@ app.post('/yearbook/:id/publish', checkAuthenticated, ensureRole(['admin']), asy
   } catch (error) {
     console.error('Error publishing yearbook:', error);
     res.status(500).json({ message: 'Error publishing yearbook' });
+  }
+});
+
+app.post('/yearbook/:id/pending', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+  try {
+    const yearbookId = req.params.id;
+
+    // Update the yearbook status to 'published'
+    await Yearbook.findOneAndUpdate({ id: yearbookId }, { status: 'pending' });
+
+    // Optionally log the activity
+    await logActivity(yearbookId._id, 'Yearbook Pending', `Yearbook ${yearbookId} pending successfully`);
+
+    res.redirect('/admin/yearbooks'); // Redirect back to the yearbooks page
+  } catch (error) {
+    console.error('Error pending yearbook:', error);
+    res.status(500).json({ message: 'Error pending yearbook' });
   }
 });
 
@@ -711,13 +915,16 @@ app.get('/comittee/yearbooks', checkAuthenticated, ensureRole(['admin']), async 
         });
       }
     }
-
+    const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
+    .sort({ views: -1 }) // Sort by views in descending order
+    .limit(3); // Limit to 3 yearbooks
+    
     // Fetch all yearbooks from MongoDB, grouped by status
     const publishedYearbooks = await Yearbook.find({ status: 'published' });
     const pendingYearbooks = await Yearbook.find({ status: 'pending' });
 
     // Render the admin dashboard with published and pending yearbooks
-    res.render(path.join(__dirname, 'public', 'comittee', 'index'), { publishedYearbooks, pendingYearbooks });
+    res.render(path.join(__dirname, 'public', 'comittee', 'index'), { publishedYearbooks, pendingYearbooks,mostViewedYearbooks, onlineUsers });
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
     res.status(500).json({ message: 'Error fetching yearbooks' });
@@ -728,21 +935,51 @@ app.get('/comittee/yearbooks', checkAuthenticated, ensureRole(['admin']), async 
 app.get('/comitteeyearbook/:id', async (req, res) => {
   try {
     const yearbookId = req.params.id;
-    const url = `http://localhost/wordpress/3d-flip-book/${yearbookId}/`;
+    const url = 'http://localhost/wordpress/wp-admin/edit.php?post_type=3d-flip-book';
     
+    const yearbook = await Yearbook.findOne({ id: yearbookId });
+    if (!yearbook) {
+      return res.status(404).json({ message: 'Yearbook not found' });
+    }
+    yearbook.views += 1;
+    yearbook.lastViewed = Date.now();
+    await yearbook.save();
 
-    // Fetch the HTML content of the page
-    const response = await axios.get(url);
+    // Fetch the HTML content of the WordPress page
+    const response = await axios.get(url, {
+      headers: {
+        Cookie: 'wordpress_logged_in_bbfa5b726c6b7a9cf3cda9370be3ee91=root%7C1729738427%7CfVkaxMbMFZHhLX7hkxBg2fwUCqs4xzbA64eEz0i2cnb%7C669838cbfedeb39f1e0d9423e8808823f1ebcb063bc486c6b195f4580a61c158; wordpress_bbfa5b726c6b7a9cf3cda9370be3ee91=root%7C1729738427%7CfVkaxMbMFZHhLX7hkxBg2fwUCqs4xzbA64eEz0i2cnb%7C11364a94f3548b33a5ad1ed5d269543a1892e153a93c2353e966b3da90e56437; connect.sid=s%3AymPR7RCCbnt3OYAo3U9NSul6EyawUrlK.NcBHT4eZ38mktYE00Ah5eJJWxzeod%2Bjocnx1WrnGV0I'
+      }
+    });
     const html = response.data;
 
-    // Load the HTML into Cheerio (which works like jQuery for server-side)
+    // Load the full HTML content into Cheerio
     const $ = cheerio.load(html);
 
-    // Extract only the content of the <body> tag
-    const bodyContent = $('body').html(); // Gets the inner HTML of the body tag
+    // Fix relative URLs for assets (CSS, JS, images)
+    $('link[rel="stylesheet"]').each((i, el) => {
+      const href = $(el).attr('href');
+      if (href && href.startsWith('/')) {
+        $(el).attr('href', `http://localhost${href}`);
+      }
+    });
+    
+    $('script').each((i, el) => {
+      const src = $(el).attr('src');
+      if (src && src.startsWith('/')) {
+        $(el).attr('src', `http://localhost${src}`);
+      }
+    });
 
-    // Render the EJS template with the body content
-    res.render('comitteeyearbook', { bodyContent });
+    $('img').each((i, el) => {
+      const src = $(el).attr('src');
+      if (src && src.startsWith('/')) {
+        $(el).attr('src', `http://localhost${src}`);
+      }
+    });
+
+    // Render the full page (includes head, body, and scripts)
+    res.send($.html());
 
     // Optionally log the activity
     await logActivity(yearbookId._id, 'Admin View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
@@ -776,13 +1013,16 @@ app.get('/student/yearbooks', checkAuthenticated, ensureRole(['student']), async
         });
       }
     }
+    const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
+    .sort({ views: -1 }) // Sort by views in descending order
+    .limit(3); // Limit to 3 yearbooks
 
     // Fetch all yearbooks from MongoDB, grouped by status
     const publishedYearbooks = await Yearbook.find({ status: 'published' });
     const pendingYearbooks = await Yearbook.find({ status: 'pending' });
 
     // Render the admin dashboard with published and pending yearbooks
-    res.render(path.join(__dirname, 'public', 'student', 'index'), { publishedYearbooks, pendingYearbooks });
+    res.render(path.join(__dirname, 'public', 'student', 'index'), { publishedYearbooks, pendingYearbooks,mostViewedYearbooks, onlineUsers  });
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
     res.status(500).json({ message: 'Error fetching yearbooks' });
@@ -822,7 +1062,6 @@ async function fetchFlipbooks() {
     const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks', {
       withCredentials: true,
     });
-    console.log('Flipbooks data:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching flipbooks:', error);
@@ -836,6 +1075,41 @@ fetchFlipbooks().then(flipbooks => {
   console.log(flipbooks);
 });
 
+async function yearbooks(){
+  // Fetch all yearbooks from the API
+const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
+const fetchedYearbooks = response.data;
+
+// Fetch all yearbooks currently in the database
+const existingYearbooks = await Yearbook.find({});
+
+// Create a set of fetched yearbook IDs for easy lookup
+const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => yearbook.id));
+
+// Remove yearbooks from the database that are not in the fetched data
+for (const existingYearbook of existingYearbooks) {
+  if (!fetchedYearbookIds.has(existingYearbook.id)) {
+    // If the yearbook is not in the fetched list, remove it from the database
+    await Yearbook.deleteOne({ id: existingYearbook.id });
+  }
+}
+
+// Add new yearbooks from the fetched data that do not exist in the database
+for (const yearbook of fetchedYearbooks) {
+  const existingYearbook = await Yearbook.findOne({ id: yearbook.id });
+
+  if (!existingYearbook) {
+    // If the yearbook doesn't exist in the database, create it
+    await Yearbook.create({
+      id: yearbook.id,
+      title: yearbook.title,
+      status: 'pending',
+      thumbnail: yearbook.thumbnail,
+    });
+  }
+}
+
+};
 
 app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`);

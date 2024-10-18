@@ -17,166 +17,10 @@
   <link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
   <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
   <link href="../assets/css/style.css" rel="stylesheet">
+  <link href="../assets/css/views.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <style>
-    #mobile-blocker {
-      display: none;
-    }
-
-    @media only screen and (max-width: 768px) {
-      body {
-        overflow: hidden;
-      }
-
-      #header,
-      #sidebar,
-      #content {
-        display: none;
-      }
-
-      #mobile-blocker {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        color: rgb(255, 255, 255);
-        text-align: center;
-        padding-top: 200px;
-        z-index: 2000;
-      }
-    }
-
-    .align-left {
-      text-align: left;
-    }
-
-    .search-container {
-      display: flex;
-      align-items: center;
-      background-color: #f8f9fa;
-      border-radius: 25px;
-      padding: 5px;
-      border: 1px solid #ced4da;
-    }
-
-    .search-container input[type="search"] {
-      border: none;
-      outline: none;
-      padding: 10px;
-      border-radius: 25px;
-      flex-grow: 1;
-    }
-
-    .search-container button {
-      background: none;
-      border: none;
-      outline: none;
-      padding: 10px;
-      margin-right: 5px;
-      border-radius: 25px;
-      cursor: pointer;
-    }
-
-    .search-container button img {
-      width: 16px;
-      height: 16px;
-    }
-
-    
-    #sidebar {
-      position: fixed;
-      top: 60px; 
-      left: 0;
-      height: calc(100vh - 60px); 
-      width: 250px;
-      background-color: #000000;
-      color: white;
-      overflow-y: auto;
-      z-index: 1000;
-    }
-
-    #sidebar .nav-link {
-      color: white;
-    }
-
-    #sidebar .nav-link:hover {
-      background-color: #495057;
-    }
-
-    #sidebar .Dashboard {
-      width: 28px;
-      height: 28px;
-      margin-left: 70px;
-      transition: margin-right 5s;
-    }
-
-    #sidebar .Yearbook {
-      width: 28px;
-      height: 28px;
-      margin-left: 80px;
-      transition: margin-right 5s;
-    }
-
-    #sidebar .Students {
-      width: 28px;
-      height: 28px;
-      margin-left: 85px;
-      transition: margin-right 5s;
-    }
-
-    #sidebar .Committee {
-      width: 28px;
-      height: 28px;
-      margin-left: 68px;
-      transition: margin-right 5s;
-    }
-
-    #sidebar .Settings {
-      width: 28px;
-      height: 28px;
-      margin-left: 90px;
-      transition: margin-right 5s;
-    }
-
-    #content {
-      margin-left: 250px;
-      padding-top: 60px; 
-    }
-
-    
-    #header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: black;
-      z-index: 10; 
-    }
-    .grid-row {
-    display: grid;
-    grid-template-rows: auto auto;
-  }
-
-  .gridds {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1%;
-  }
-
-  .yearbook-img {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .lead {
-    margin: 0;
-  }
-    
-  </style>
+ 
 
 </head>
 
@@ -237,24 +81,65 @@
         <div class="container">
           <div class="row">
             <div class="col-sm-12">
-              <div class="box-shadow-full">
-                <div class="align-left">
-                  <h4>Yearbooks</h4>
-                    <div class="gridds">
-                      <% publishedYearbooks.forEach(yearbook => { %>
-                        <div class="grid-row" style="margin: 1%; text-align: center;">
-                          <div>
-                            <a href="/studentyearbook/<%= yearbook.id %>" style="display: block;">
-                              <img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" class="yearbook-img">
-                            </a>
+              <div style="display: grid;grid-template-columns: auto 25%;gap: 1%;">
+                <div class="box-shadow-full">
+                  <div class="align-left">
+                    <h4>Yearbooks</h4>
+                      <div class="gridds">
+                        <% publishedYearbooks.forEach(yearbook => { %>
+                          <div class="grid-row" style="margin: 1%; text-align: center;">
+                            <div>
+                              <a href="/studentyearbook/<%= yearbook.id %>" style="display: block;">
+                                <img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" class="yearbook-img">
+                              </a>
+                            </div>
+                            <div>
+                              <p class="lead"><%- yearbook.title %></p>
+                            </div>
                           </div>
-                          <div>
-                            <p class="lead"><%- yearbook.title %></p>
-                          </div>
-                        </div>
-                      <% }) %>
-                    </div>
+                        <% }) %>
+                      </div>
                 </div>
+                </div>
+                <div class="grid-row" style=" text-align: center; height: auto;">
+                  <div class="box-shadow-full" style="padding: 5%;margin-top: -auto;">
+                    <h4 style="font-size: 100%;">Calendar</h4>
+                    <div class="header">
+                      <button id="prevMonth" style="background: none; border: none; color: white; cursor: pointer;">&lt;</button>
+                      <h2 id="monthYear" style="font-size: 150%;"></h2>
+                      <button id="nextMonth" style="background: none; border: none; color: white; cursor: pointer;">&gt;</button>
+                  </div>
+                  <div class="days">
+                      <div>Sun</div>
+                      <div>Mon</div>
+                      <div>Tue</div>
+                      <div>Wed</div>
+                      <div>Thu</div>
+                      <div>Fri</div>
+                      <div>Sat</div>
+                  </div>
+                  <div class="dates" id="dateCells"></div>
+                  </div>
+                  <div class="box-shadow-full" style="padding: 5%; margin-top: -10%;">
+                    <h4>Users Online</h4>
+                      <div class="align-left" id="onlineusers">
+                        <p>Students: <span id="studentsOnline"><%= onlineUsers.student %></span></p>
+                        <p>Committee: <span id="committeeOnline"><%= onlineUsers.committee %></span></p>
+                      </div>
+                  </div>
+                  <div class="box-shadow-full" style="padding: 5%; margin-top: -10%;">
+                    <h4 style="font-size: 100%;">Most Viewed Yearbooks</h4>
+                    <div class="align-left">
+                      <div class="align-left" style="margin: 2%;">
+                        <% mostViewedYearbooks.forEach(yearbook => { %>
+                          <p><strong><%= yearbook.title %></strong>- <%= yearbook.views %> views</p>
+                        <% }) %>
+                      </div>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
               </div>
             </div>
           </div>
@@ -268,6 +153,83 @@
     <h1 style="color: white;">Access Denied</h1>
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script scr="/js/calendar.js">
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+
+    const monthYearDisplay = document.getElementById('monthYear');
+    const dateCells = document.getElementById('dateCells');
+    const prevMonthButton = document.getElementById('prevMonth');
+    const nextMonthButton = document.getElementById('nextMonth');
+
+    // Function to render the calendar
+    function renderCalendar() {
+        dateCells.innerHTML = ''; // Clear previous dates
+        const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+        const lastDateOfMonth = new Date(currentYear, currentMonth + 1, 0);
+        const lastDayOfPreviousMonth = new Date(currentYear, currentMonth, 0);
+        
+        const firstDayOfWeek = firstDayOfMonth.getDay();
+        const lastDate = lastDateOfMonth.getDate();
+        const totalDays = firstDayOfWeek + lastDate;
+
+        // Display month and year
+        monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+        // Add previous month's overflow days
+        for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+            const prevMonthDate = new Date(currentYear, currentMonth - 1, lastDayOfPreviousMonth.getDate() - i);
+            const day = prevMonthDate.getDate();
+            const div = document.createElement('div');
+            div.textContent = day;
+            div.style.color = '#ccc';
+            dateCells.appendChild(div);
+        }
+
+        // Add the current month's dates
+        for (let day = 1; day <= lastDate; day++) {
+            const div = document.createElement('div');
+            div.textContent = day;
+            div.onclick = () => alert(`You clicked on ${day} ${monthNames[currentMonth]} ${currentYear}`);
+            dateCells.appendChild(div);
+        }
+
+        // Add next month's overflow days (if needed)
+        const remainingCells = 42 - totalDays;
+        for (let i = 0; i < remainingCells; i++) {
+            const nextMonthDate = new Date(currentYear, currentMonth + 1, i + 1);
+            const div = document.createElement('div');
+            div.textContent = nextMonthDate.getDate();
+            div.style.color = '#ccc';
+            dateCells.appendChild(div);
+        }
+    }
+
+    // Event listeners for the buttons
+    prevMonthButton.addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        renderCalendar();
+    });
+
+    nextMonthButton.addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar();
+    });
+
+    // Initial rendering of the calendar
+    renderCalendar();
+  </script>
   <script src="../authjs"></script>
   <script src="../assets/js/zoom.js"></script> 
   <script src="../assets/js/accountsettings.js"></script>

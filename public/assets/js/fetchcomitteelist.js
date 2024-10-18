@@ -16,7 +16,7 @@ document.querySelector('a[href="#comittee"]').addEventListener('click', async fu
 function displayComittee(comittee) {
   const container = document.querySelector('.align-left');
   container.innerHTML = `
-    <h4>Student List</h4>
+    <h4>Committee List</h4>
     <div class="student-container">
       ${comittee.map(student => `
         <div class="student-card">

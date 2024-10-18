@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Dashboard | E - Yearbook Management System</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <link href="../assets/img/mlndy logo.png" rel="icon">
+  <link href="../assets/img/mlndy logo.png" rel="apple-touch-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-Rk4kgbc4eEkdaD6S6ZjPhxnU9HWyqeqeUQ+Rz/z6z3qmWTfaTlqmKAzzPXZ+6u2oUlVbMZIuSJtQ9nH19p0x2Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link href="../assets/css/style.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+  <style>
+    #mobile-blocker {
+      display: none;
+    }
+
+    @media only screen and (max-width: 768px) {
+      body {
+        overflow: hidden;
+      }
+
+      #header,
+      #sidebar,
+      #content {
+        display: none;
+      }
+
+      #mobile-blocker {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: rgb(255, 255, 255);
+        text-align: center;
+        padding-top: 200px;
+        z-index: 2000;
+      }
+    }
+
+    .align-left {
+      text-align: left;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+      background-color: #f8f9fa;
+      border-radius: 25px;
+      padding: 5px;
+      border: 1px solid #ced4da;
+    }
+
+    .search-container input[type="search"] {
+      border: none;
+      outline: none;
+      padding: 10px;
+      border-radius: 25px;
+      flex-grow: 1;
+    }
+
+    .search-container button {
+      background: none;
+      border: none;
+      outline: none;
+      padding: 10px;
+      margin-right: 5px;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+
+    .search-container button img {
+      width: 16px;
+      height: 16px;
+    }
+
+    
+    #sidebar {
+      position: fixed;
+      top: 60px; 
+      left: 0;
+      height: calc(100vh - 60px); 
+      width: 250px;
+      background-color: #000000;
+      color: white;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    #sidebar .nav-link {
+      color: white;
+    }
+
+    #sidebar .nav-link:hover {
+      background-color: #495057;
+    }
+
+    #sidebar .Dashboard {
+      width: 28px;
+      height: 28px;
+      margin-left: 70px;
+      transition: margin-right 5s;
+    }
+
+    #sidebar .Yearbook {
+      width: 28px;
+      height: 28px;
+      margin-left: 80px;
+      transition: margin-right 5s;
+    }
+
+    #sidebar .Students {
+      width: 28px;
+      height: 28px;
+      margin-left: 85px;
+      transition: margin-right 5s;
+    }
+
+    #sidebar .Committee {
+      width: 28px;
+      height: 28px;
+      margin-left: 68px;
+      transition: margin-right 5s;
+    }
+
+    #sidebar .Settings {
+      width: 28px;
+      height: 28px;
+      margin-left: 90px;
+      transition: margin-right 5s;
+    }
+
+    #content {
+      margin-left: 250px;
+      padding-top: 60px; 
+    }
+
+    
+    #header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: black;
+      z-index: 10; 
+    }
+    .grid-row {
+    display: grid;
+    grid-template-rows: auto auto;
+  }
+
+  .gridds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1%;
+  }
+
+  .yearbook-img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .lead {
+    margin: 0;
+  }
+  .student-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center the items horizontally */
+  gap: 20px; /* Space between cards */
+}
+
+.student-card {
+  background: #fff; /* White background for the card */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow effect */
+  padding: 20px; /* Space inside the card */
+  width: 300px; /* Fixed width for each card */
+  text-align: center; /* Center text inside the card */
+}
+
+.student-card p {
+  margin: 10px 0; /* Space between paragraphs */
+}
+
+
+#logList {
+  max-height: 300px;
+  overflow-y: scroll;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+}
+
+.logList-entry {
+  padding: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.logList:last-child {
+  border-bottom: none;
+}
+
+
+    
+  </style>
+
+</head>
+
+<body id="body-content">
+
+ 
+  <header id="header" style="background-color: black;">
+    <div class="container d-flex align-items-center justify-content-between">
+      <button id="toggle-button">☰</button>
+      <h1 class="logo">
+        <img src="../assets/img/mlndy logo.png">
+        <a href="#" style="font-size: 75%;"> MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a>
+      </h1>
+
+      <nav id="navbar" class="navbar">
+        <ul class="d-flex align-items-center">
+          <li>
+            <form class="form-inline my-2 my-lg-0 search-container">
+              <input class="form-control" type="search" placeholder="Search your work" aria-label="Search">
+              <button type="submit"><img src="../assets/img/OIP.jpg" alt="Search"></button>
+            </form>
+          </li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav>
+      <h1 class="logo">
+        <a href="" style="font-size: 65%;" data-toggle="modal" data-target="#notifmodal">
+          <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
+        </a>
+      </h1>
+      <h1 class="logo">
+        <a href="" style="font-size: 65%;">
+          <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
+          Admin
+        </a>
+      </h1>
+    </div>
+  </header>
+
+  <div class="modal fade" id="notifmodal" tabindex="-1" aria-labelledby="notifmodalLabel" aria-hidden="true" style="padding-top: 10%;">
+    <div class="modal-dialog" style="max-width: 50%;">
+      <div class="modal-content box-shadow-full">
+        <div class="modal-header">
+          <h5 class="title-left">Notifications</h5>
+          <button type="button" class="button button-rouded" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="notifications contents">
+          
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sidebar">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link" href="/comittee/yearbooks"id="yearbooklist">Yearbook
+        <img src="../assets/img/yearbook.png" alt="Yearbook" class="Yearbook">
+      </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#students">Students
+        <img src="../assets/img/Students.png" alt="Students" class="Students">
+      </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#comittee">Committee
+        <img src="../assets/img/committee.png" alt="Committee" class="Committee">
+      </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-toggle="modal" data-target="#createAccModal">Create Acct
+        <img src="../assets/img/createacct.png" alt="Committee" class="Committee">
+      </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/setup-2fa">Setup 2FA
+        <img src="https://static.vecteezy.com/system/resources/previews/014/571/683/original/yellow-padlock-for-locking-the-information-on-the-computer-data-encryption-concept-png.png"  alt="Committee" class="Committee">
+      </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#accsettings">Settings
+        <img src="../assets/img/settings.png" alt="Settings" class="Settings">
+      </a>
+      </li>
+      <li class="nav-item">
+        <button class=" nav-link button button-a button-rouded" id="logoutButton" >Logout</button>
+        </li>
+    </ul>
+  </div>
+  <div class="modal fade" id="createAccModal" tabindex="-1" aria-labelledby="createAccModalLabel" aria-hidden="true" style="padding-top: 10%;">
+    <div class="modal-dialog" style="max-width: 50%;">
+      <div class="modal-content box-shadow-full">
+        <div class="modal-header">
+          <h5 class="title-left">Create Account</h5>
+          <button type="button" class="button button-rouded" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div>
+            <form id="createAccForm">
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="student_number"><h4>Student Number</h4></label>
+                  <input type="number" class="form-control" id="student_number" placeholder="Enter Student Number" required>
+                </div>
+              </div>
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="email"><h4>Email</h4></label>
+                  <input type="email" class="form-control" id="email" placeholder="Enter Email" required>
+                </div>
+              </div>
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="birthday"><h4>Birthdate</h4></label>
+                  <input type="date" class="form-control" id="birthday" placeholder="Enter Birthdate" required>
+                </div>
+              </div>
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="acctype"><h4>Account Type</h4></label>
+                  <select id="acctype" class="form-control" name="account_type" placeholder="Select Account Type">
+                    <option value="student">Student</option>
+                    <option value="committee">Committee</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-12 mb-3">
+                <div>
+                  <button type="button" class="button button-a button-big button-rounded" id="createAccountButton">Create</button>
+                </div>
+              </div>
+            </form>
+            
+            <form id="createAccForm">
+              <div class="col-md-12 mb-3">
+                <div class="form-group">
+                  <label for="csvFile"><h4>Upload CSV File</h4></label>
+                  <input type="file" class="form-control" id="csvFile" accept=".csv">
+                </div>
+              </div>
+              <div class="col-md-12 mb-3">
+                <table id="csvPreviewTable" class="table table-striped" style="display: none;">
+                  <thead>
+                    <tr>
+                      <th>Student Number</th>
+                      <th>Email</th>
+                      <th>Password</th>
+                      <th>Account Type</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="col-md-12 mb-3">
+                <div>
+                  <button type="button" class="button button-a button-big button-rouded" id="uploadCsvButton">Upload CSV</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  
+  <div id="content">
+    <main id="main">
+      <section id="about" class="about-mf sect-pt4 route">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-12">
+              <div style="display: grid;grid-template-columns: auto auto;gap: 1%;">
+                <div class="box-shadow-full" style="height: max-content;">
+                  <div style="text-align: center;" >
+                    <div class="gridds">
+                        <div>
+                            <h4>Setup 2FA</h4>
+                            <p>Scan the QR code below with Google Authenticator or any TOTP app:</p>
+                            <img src="<%= qrCodeUrl %>" alt="QR Code">
+                        </div>
+                        <div>
+                            <h2>Verify 2FA</h2>
+                            <form id="2fa-form" action="/verify-2fa" method="POST">
+                                <label for="token">Enter the token from your authenticator app:</label><br>
+                                <input type="text" id="token" name="token" required><br><br>
+                                <button type="submit">Verify</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <script>
+                    document.getElementById('2fa-form').addEventListener('submit', async function(event) {
+                        event.preventDefault(); // Prevent the default form submission
+                        const token = document.getElementById('token').value;
+                    
+                        // Log the token for debugging
+                        console.log("Submitting token:", token);
+                    
+                        try {
+                            const response = await fetch('/verify-2fa', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ token: token })
+                            });
+                    
+                            const result = await response.json();
+                    
+                            if (response.ok) {
+                                // If the 2FA setup was successful
+                                alert(result.message);
+                                window.location.href = '/admin/yearbooks'; // Redirect to yearbooks page
+                            } else {
+                                // If there was an error (e.g., invalid token)
+                                alert(result.message);
+                                window.location.href = '/admin/yearbooks'; // Redirect to yearbooks page
+                            }
+                        } catch (error) {
+                            console.error('Error submitting 2FA:', error);
+                            alert('An error occurred during verification. Please try again.');
+                        }
+                    });
+                    </script>
+                    
+</div>
+</div>
+
+
+<div class="grid-row" style="  height: max-content;">
+  <div class="box-shadow-full" style="text-align: center; padding: 5%; height: max-content;">
+    <h4>Users Online</h4>
+      <div class="align-left" id="onlineusers" style="margin: 2%;">
+        
+      </div>
+
+  </div>
+  <div class="box-shadow-full" style="text-align: center;padding: 5%; height: max-content;">
+    <div class="align-left">
+      <h4>Most Viewed Yearbooks</h4>
+      
+        
+    </div>
+  </div>
+  <div class="box-shadow-full" style="text-align: center;padding: 5%; height: max-content;">
+
+    <div class="align-left">
+      <h4 >Yearbooks Logs</h4>
+      
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+
+
+<div id="mobile-blocker">
+<h1 style="color: white;">Access Denied</h1>
+<p>This page is only accessible in desktop and not on mobile devices.</p>
+</div>
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script scr="/js/onlinestu.js">
+</script>
+
+
+<script src="../assets/js/accountsettings.js"></script>
+<script src="../assets/js/zoom.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script src="../auth.js"></script>
+<script src="../assets/js/createaccount.js"></script>
+<script src="../assets/js/logout.js"></script>
+<script src="../assets/js/fetchstudentlist.js"></script>
+<script src="../assets/js/fetchcomitteelist.js"></script>
+<script src="../assets/js/fetchyblist.js"></script>
+<script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+<script src="../assets/vendor/php-email-form/validate.js"></script>
+<script src="../assets/vendor/purecounter/purecounter.js"></script>
+<script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+<script src="../assets/vendor/typed.js/typed.min.js"></script>
+<script src="../assets/js/main.js"></script>
+
+</body>
+
+</html>

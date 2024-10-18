@@ -17,209 +17,12 @@
   <link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
   <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
   <link href="../assets/css/style.css" rel="stylesheet">
+  <link href="../assets/css/views.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 
-  <style>
-    #mobile-blocker {
-      display: none;
-    }
-
-    @media only screen and (max-width: 768px) {
-      body {
-        overflow: hidden;
-      }
-
-      #header,
-      #sidebar,
-      #content {
-        display: none;
-      }
-
-      #mobile-blocker {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        color: rgb(255, 255, 255);
-        text-align: center;
-        padding-top: 200px;
-        z-index: 2000;
-      }
-    }
-
-    .align-left {
-      text-align: left;
-    }
-
-    .search-container {
-      display: flex;
-      align-items: center;
-      background-color: #f8f9fa;
-      border-radius: 25px;
-      padding: 5px;
-      border: 1px solid #ced4da;
-    }
-
-    .search-container input[type="search"] {
-      border: none;
-      outline: none;
-      padding: 10px;
-      border-radius: 25px;
-      flex-grow: 1;
-    }
-
-    .search-container button {
-      background: none;
-      border: none;
-      outline: none;
-      padding: 10px;
-      margin-right: 5px;
-      border-radius: 25px;
-      cursor: pointer;
-    }
-
-    .search-container button img {
-      width: 16px;
-      height: 16px;
-    }
-
-    
-    #sidebar {
-      position: fixed;
-      top: 60px; 
-      left: 0;
-      height: calc(100vh - 60px); 
-      width: 250px;
-      background-color: #000000;
-      color: white;
-      overflow-y: auto;
-      z-index: 1000;
-    }
-
-    #sidebar .nav-link {
-      color: white;
-    }
-
-    #sidebar .nav-link:hover {
-      background-color: #495057;
-    }
-
-    #sidebar .Dashboard {
-      width: 28px;
-      height: 28px;
-      margin-left: 70px;
-      transition: margin-right 5s;
-    }
-
-    #sidebar .Yearbook {
-      width: 28px;
-      height: 28px;
-      margin-left: 80px;
-      transition: margin-right 5s;
-    }
-
-    #sidebar .Students {
-      width: 28px;
-      height: 28px;
-      margin-left: 85px;
-      transition: margin-right 5s;
-    }
-
-    #sidebar .Committee {
-      width: 28px;
-      height: 28px;
-      margin-left: 68px;
-      transition: margin-right 5s;
-    }
-
-    #sidebar .Settings {
-      width: 28px;
-      height: 28px;
-      margin-left: 90px;
-      transition: margin-right 5s;
-    }
-
-    #content {
-      margin-left: 250px;
-      padding-top: 60px; 
-    }
-
-    
-    #header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background-color: black;
-      z-index: 10; 
-    }
-    .grid-row {
-    display: grid;
-    grid-template-rows: auto auto;
-  }
-
-  .gridds {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1%;
-  }
-
-  .yearbook-img {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .lead {
-    margin: 0;
-  }
-  .student-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center; /* Center the items horizontally */
-  gap: 20px; /* Space between cards */
-}
-
-.student-card {
-  background: #fff; /* White background for the card */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow effect */
-  padding: 20px; /* Space inside the card */
-  width: 300px; /* Fixed width for each card */
-  text-align: center; /* Center text inside the card */
-}
-
-.student-card p {
-  margin: 10px 0; /* Space between paragraphs */
-}
-
-
-#logList {
-  max-height: 300px;
-  overflow-y: scroll;
-  padding: 10px;
-  background-color: #f8f9fa;
-  border: 1px solid #ced4da;
-  border-radius: 5px;
-}
-
-.logList-entry {
-  padding: 10px;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.logList:last-child {
-  border-bottom: none;
-}
-
-
-    
-  </style>
-
+  
 </head>
 
 <body id="body-content">
@@ -245,6 +48,11 @@
         <i class="bi bi-list mobile-nav-toggle"></i>
       </nav>
       <h1 class="logo">
+        <a href="" style="font-size: 65%;" data-toggle="modal" data-target="#notifmodal">
+          <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
+        </a>
+      </h1>
+      <h1 class="logo">
         <a href="" style="font-size: 65%;">
           <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
           Admin
@@ -253,7 +61,24 @@
     </div>
   </header>
 
-  
+  <div class="modal fade" id="notifmodal" tabindex="-1" aria-labelledby="notifmodalLabel" aria-hidden="true" style="padding-top: 10%;">
+    <div class="modal-dialog" style="max-width: 50%;">
+      <div class="modal-content box-shadow-full">
+        <div class="modal-header">
+          <h5 class="title-left">Notifications</h5>
+          <button type="button" class="button button-rouded" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="notifications contents">
+          
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item">
@@ -276,11 +101,19 @@
         <img src="../assets/img/createacct.png" alt="Committee" class="Committee">
       </a>
       </li>
+      
+      </li>
       <li class="nav-item">
         <a class="nav-link" href="#accsettings">Settings
         <img src="../assets/img/settings.png" alt="Settings" class="Settings">
       </a>
       </li>
+      <li class="nav-item">
+        <% if (!user.twoFactorEnabled) { %>
+          <a class="nav-link" href="/setup-2fa">Setup 2FA
+          <img src="https://static.vecteezy.com/system/resources/previews/014/571/683/original/yellow-padlock-for-locking-the-information-on-the-computer-data-encryption-concept-png.png"  alt="Committee" class="Committee">
+        <% } %>
+      </a>
       <li class="nav-item">
         <button class=" nav-link button button-a button-rouded" id="logoutButton" >Logout</button>
         </li>
@@ -365,31 +198,17 @@
   </div>
 
   
+  
   <div id="content">
     <main id="main">
       <section id="about" class="about-mf sect-pt4 route">
         <div class="container">
           <div class="row">
             <div class="col-sm-12">
-              <div style="display: grid;grid-template-columns: 70% 30%;gap: 1%;">
-                <div class="box-shadow-full">
+              <div style="display: grid;grid-template-columns: auto 25%;gap: 1%;">
+                <div class="box-shadow-full" style="height: max-content;">
                   <div class="align-left">
-                    <h4>Published Yearbooks</h4>
-                    <div class="gridds">
-                      <% publishedYearbooks.forEach(yearbook => { %>
-                        <div class="grid-row" style="margin: 1%; text-align: center;">
-                          <div>
-                            <a href="/yearbook/<%= yearbook.id %>" style="display: block;">
-                              <img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" class="yearbook-img">
-                            </a>
-                          </div>
-                          <div>
-                            <p class="lead"><%- yearbook.title %></p>
-                          </div>
-                        </div>
-                      <% }) %>
-                    </div>
-                
+
                     <h4>Pending Yearbooks</h4>
                     <div class="gridds">
                       <% pendingYearbooks.forEach(yearbook => { %>
@@ -409,24 +228,77 @@
                         </div>
                       <% }) %>
                     </div>
+
+
+                    <h4>Published Yearbooks</h4>
+                    <div class="gridds">
+                      <% publishedYearbooks.forEach(yearbook => { %>
+                        <div class="grid-row" style="margin: 1%; text-align: center;">
+                          <div>
+                            <a href="/yearbook/<%= yearbook.id %>" style="display: block;">
+                              <img src="../assets/img/YEARBOOK GALLERY MAKER (4).png" alt="Published Yearbooks" class="yearbook-img">
+                            </a>
+                          </div>
+                          <div>
+                            <p class="lead"><%- yearbook.title %></p>
+                            <!-- Publish button -->
+                            <form action="/yearbook/<%= yearbook.id %>/pending" method="POST">
+                              <button type="submit" class="button button-a button-rouded">Unpublish</button>
+                            </form>
+                          </div>
+                        </div>
+                      <% }) %>
+                    </div>
+
+                
                   </div>
+                  
                 </div>
                 
-                
-                <div class="grid-row" style=" text-align: center;">
-                  <div class="box-shadow-full">
+                <div class="grid-row" style=" text-align: center; height: auto;">
+                  <div class="box-shadow-full" style="padding: 5%;margin-top: -auto;">
+                    <h4 style="font-size: 100%;">Calendar</h4>
+                    <div class="header">
+                      <button id="prevMonth" style="background: none; border: none; color: white; cursor: pointer;">&lt;</button>
+                      <h2 id="monthYear" style="font-size: 150%;"></h2>
+                      <button id="nextMonth" style="background: none; border: none; color: white; cursor: pointer;">&gt;</button>
+                  </div>
+                  <div class="days">
+                      <div>Sun</div>
+                      <div>Mon</div>
+                      <div>Tue</div>
+                      <div>Wed</div>
+                      <div>Thu</div>
+                      <div>Fri</div>
+                      <div>Sat</div>
+                  </div>
+                  <div class="dates" id="dateCells"></div>
+                  </div>
+                  <div class="box-shadow-full" style="padding: 5%; margin-top: -10%;">
+                    <h4>Users Online</h4>
+                      <div class="align-left" id="onlineusers" style="margin: 2%;">
+                        <p><strong>Students:</strong>  <span id="studentsOnline"><%= onlineUsers.student %></span></p>
+                        <p><strong>Committee:</strong> <span id="committeeOnline"><%= onlineUsers.committee %></span></p>
+                        <p><strong>Admin: </strong><span id="adminOnline"><%= onlineUsers.admin %></span></p>
+                      </div>
+                  </div>
+                  <div class="box-shadow-full" style="padding: 5%; margin-top: -10%;">
+                    <h4 style="font-size: 100%;">Most Viewed Yearbooks</h4>
                     <div class="align-left">
-                      <h4 >Published Yearbooks</h4>
-                      <ul id="logList"></ul>
+                      <div class="align-left" style="margin: 2%;">
+                        <% mostViewedYearbooks.forEach(yearbook => { %>
+                          <p><strong><%= yearbook.title %></strong>- <%= yearbook.views %> views</p>
+                        <% }) %>
+                      </div>
                     </div>
                   </div>
-                  <div class="box-shadow-full">
-                    <div class="align-left">
-                      <h4 >wala pa</h4>
-                      
-                    </div>
-                  </div>
+                  
                 </div>
+
+
+
+                
+                
               </div>
             </div>
           </div>
@@ -443,29 +315,14 @@
   
   
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-  
-    // Display the initial logs when the page loads
-    socket.on('initialLogs', function(logs) {
-      logs.forEach(log => displayLog(log));
-    });
-  
-    // Listen for new logs
-    socket.on('newLog', function(logs) {
-      logs.forEach(log => displayLog(log));
-    });
-  
-    function displayLog(log) {
-      const logList = document.getElementById('logList');
-      const logItem = document.createElement('li');
-      logItem.textContent = `${log.timestamp} - ${log.action}: ${log.details}`;
-      logList.appendChild(logItem);
-    }
+ 
+  <script scr="/js/onlinestu.js">
   </script>
+  
   
   <script src="../assets/js/accountsettings.js"></script>
   <script src="../assets/js/zoom.js"></script> 
+  <script src="../assets/js/calendar.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script src="../auth.js"></script>
   <script src="../assets/js/createaccount.js"></script>
