@@ -22,22 +22,15 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 
+  
 </head>
 
 <body id="body-content">
-  <div class="notification-container">
-    <% activityLogs.forEach(log => { %>
-      <div class="notification">
-        <p><strong>Action:</strong> <%= log.action %></p>
-        <p><strong>Details:</strong> <%= log.details %></p>
-        <p><small><%= log.timestamp.toLocaleString() %></small></p>
-      </div>
-    <% }) %>
-  </div>
+
  
   <header id="header" style="background-color: black;">
     <div class="container d-flex align-items-center justify-content-between">
-      <button id="toggle-button" style=" position: absolute;margin-left: 1%;margin-top: 1%; left: 0;">☰</button>
+      <button id="toggle-button">☰</button>
       <h1 class="logo">
         <img src="../assets/img/mlndy logo.png">
         <a href="#" style="font-size: 75%;"> MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a>
@@ -54,6 +47,11 @@
         </ul>
         <i class="bi bi-list mobile-nav-toggle"></i>
       </nav>
+      <h1 class="logo">
+        <a href="" style="font-size: 65%;" data-toggle="modal" data-target="#notifmodal">
+          <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
+        </a>
+      </h1>
       <h1 class="logo">
         <a href="" style="font-size: 65%;">
           <img src="../assets/img/admin.png" alt="Admin Icon" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 1px;">
@@ -84,7 +82,7 @@
   <div id="sidebar">
     <ul class="nav flex-column">
       <li class="nav-item">
-        <a class="nav-link" href="/admin/yearbooks"id="yearbooklist">Yearbook
+        <a class="nav-link" href="/comittee/yearbooks"id="yearbooklist">Yearbook
         <img src="../assets/img/yearbook.png" alt="Yearbook" class="Yearbook">
       </a>
       </li>
@@ -132,7 +130,7 @@
         </div>
         <div class="modal-body">
           <div>
-            <form id="createAccForm" enctype="multipart/form-data">
+            <form id="createAccForm">
               <div class="col-md-12 mb-3">
                 <div class="form-group">
                   <label for="student_number"><h4>Student Number</h4></label>
@@ -148,7 +146,7 @@
               <div class="col-md-12 mb-3">
                 <div class="form-group">
                   <label for="birthday"><h4>Birthdate</h4></label>
-                  <input type="date" class="form-control" id="birthday" name="birthday" placeholder="Enter Birthdate" required>
+                  <input type="date" class="form-control" id="birthday" placeholder="Enter Birthdate" required>
                 </div>
               </div>
               <div class="col-md-12 mb-3">
@@ -161,50 +159,38 @@
                 </div>
               </div>
               <div class="col-md-12 mb-3">
-                <div class="form-group">
-                  <label for="picture"><h4>Student Picture</h4></label>
-                  <input type="file" class="form-control" id="picture" name="picture" accept="image/*" required>
-                </div>
-              </div>
-              <div class="col-md-12 mb-3">
                 <div>
                   <button type="button" class="button button-a button-big button-rounded" id="createAccountButton">Create</button>
                 </div>
               </div>
             </form>
             
-            <form id="createAccForm" enctype="multipart/form-data">
+            <form id="createAccForm">
               <div class="col-md-12 mb-3">
-                <label for="csvFile"><h4>Upload CSV File</h4></label>
-                <input type="file" class="form-control" id="csvFile" accept=".csv">
+                <div class="form-group">
+                  <label for="csvFile"><h4>Upload CSV File</h4></label>
+                  <input type="file" class="form-control" id="csvFile" accept=".csv">
+                </div>
               </div>
-              
-              <div class="col-md-12 mb-3">
-                <label for="pictures"><h4>Upload Picture Files</h4></label>
-                <input type="file" class="form-control" id="pictures" name="pictures" accept="image/*" multiple>
-              </div>
-              
               <div class="col-md-12 mb-3">
                 <table id="csvPreviewTable" class="table table-striped" style="display: none;">
                   <thead>
                     <tr>
                       <th>Student Number</th>
                       <th>Email</th>
-                      <th>Birthday</th>
+                      <th>Password</th>
                       <th>Account Type</th>
-                      <th>Picture</th>
                     </tr>
                   </thead>
                   <tbody></tbody>
                 </table>
               </div>
-              
               <div class="col-md-12 mb-3">
-                <button type="button" class="button button-a button-big button-rouded" id="uploadCsvButton">Upload CSV and Pictures</button>
+                <div>
+                  <button type="button" class="button button-a button-big button-rouded" id="uploadCsvButton">Upload CSV</button>
+                </div>
               </div>
             </form>
-            
-            
           </div>
         </div>
       </div>
@@ -289,33 +275,12 @@
                   <div class="dates" id="dateCells"></div>
                   </div>
                   <div class="box-shadow-full" style="padding: 5%; margin-top: -10%;">
-                    <form id="setDeadlineForm">
-                      <div class="form-group">
-                        <div class="form-group">
-                          <label for="consent_deadline"><h4>Set Consent Deadline</h4></label>
-                          <input type="date" class="form-control" id="consent_deadline" required>
-                        </div>
-                      </div>
-                      <br>
-                      <label for="yearbook"><h6>Select Yearbook</h6></label>
-                        <select id="yearbook" class="form-control" required>
-                          <% yearbook.forEach(function(yearbook) { %>
-                            <option value="<%= yearbook._id %>"><%= yearbook.title %></option>
-                          <% }); %>
-                        </select>
-                        <br>
-
-                      <button type="button" class="button button-a button-big button-rounded" id="setDeadlineButton">Set Deadline</button>
-                    </form>
-                  </div>
-                  
-                  <div class="box-shadow-full" style="padding: 5%; margin-top: -10%;">
                     <h4>Users Online</h4>
-                    <div class="align-left" id="onlineusers" style="margin: 2%;">
-                      <p><strong>Students:</strong>  <span id="studentsOnline"><%= onlineUsers.student %></span></p>
-                      <p><strong>Committee:</strong> <span id="committeeOnline"><%= onlineUsers.committee %></span></p>
-                      <p><strong>Admin: </strong><span id="adminOnline"><%= onlineUsers.admin %></span></p>
-                    </div>
+                      <div class="align-left" id="onlineusers" style="margin: 2%;">
+                        <p><strong>Students:</strong>  <span id="studentsOnline"><%= onlineUsers.student %></span></p>
+                        <p><strong>Committee:</strong> <span id="committeeOnline"><%= onlineUsers.committee %></span></p>
+                        <p><strong>Admin: </strong><span id="adminOnline"><%= onlineUsers.admin %></span></p>
+                      </div>
                   </div>
                   <div class="box-shadow-full" style="padding: 5%; margin-top: -10%;">
                     <h4 style="font-size: 100%;">Most Viewed Yearbooks</h4>
@@ -329,6 +294,11 @@
                   </div>
                   
                 </div>
+
+
+
+                
+                
               </div>
             </div>
           </div>
@@ -337,83 +307,24 @@
     </main>
   </div>
 
-
+  
   <div id="mobile-blocker">
     <h1 style="color: white;">Access Denied</h1>
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    $(document).ready(function () {
-        $('#setDeadlineButton').click(function () {
-          const yearbookId = $('#yearbook').val();
-          const deadline = $('#consent_deadline').val();
-
-          if (yearbookId && deadline) {
-            $.ajax({
-              url: '/set-deadline',
-              type: 'POST',
-              contentType: 'application/json',
-              data: JSON.stringify({ yearbookId, deadline }),
-              success: function (response) {
-                alert(response.message);
-              },
-              error: function (error) {
-                alert('Error setting deadline');
-              }
-            });
-          } else {
-            alert('Please select a yearbook and deadline date.');
-          }
-        });
-      });
-  </script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    setTimeout(() => {
-        const notifications = document.querySelectorAll('.notification');
-        notifications.forEach(notification => {
-          notification.style.display = 'none';
-        });
-      }, 5000);
-      $(document).ready(function () {
-      $('#setDeadlineButton').click(function () {
-        const deadline = $('#consent_deadline').val();
-
-        if (deadline) {
-          $.ajax({
-            url: '/set-deadline',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ deadline }),
-            success: function (response) {
-              alert(response.message);
-            },
-            error: function (error) {
-              alert('Error setting deadline');
-            }
-          });
-        } else {
-          alert('Please select a deadline date.');
-        }
-      });
-      });
-  </script>
-  <script>
-      const consentDeadlines = JSON.parse('<%- JSON.stringify(calendar) %>');
-  </script>
-  <script src="../assets/js/calendar.js"></script>
-
   
-
-
-  <script scr="/js/onlinestu.js"></script>
+  
+  <script src="/socket.io/socket.io.js"></script>
+ 
+  <script scr="/js/onlinestu.js">
+  </script>
+  
+  
   <script src="../assets/js/accountsettings.js"></script>
   <script src="../assets/js/zoom.js"></script> 
   <script src="../assets/js/calendar.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   <script src="../auth.js"></script>
-  
   <script src="../assets/js/createaccount.js"></script>
   <script src="../assets/js/logout.js"></script>
   <script src="../assets/js/fetchstudentlist.js"></script>

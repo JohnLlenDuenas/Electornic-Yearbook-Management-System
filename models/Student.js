@@ -8,18 +8,16 @@ const studentSchema = new mongoose.Schema({
   key: String,
   consentfilled: { type: Boolean, default: false },
   passwordChanged: { type: Boolean, default: false },
-  accountType: { type: String, required: true },
+  accountType: { type: String, required: true },  // Admin, student, etc.
   birthday: { 
     type: String, 
     required: function() {
+      // Require birthday only for non-admin users
       return this.accountType !== 'admin'; 
     } 
   },
-  picture: { type: String }, 
-  twoFactorSecret: String,
-  lastActive: { type: Date, default: Date.now },
-  twoFactorEnabled: { type: Boolean, default: false },
-  pictureUploaded: { type: Boolean, default: false }
+  twoFactorSecret: String, // Store the TOTP secret
+  twoFactorEnabled: { type: Boolean, default: false } // Flag for 2FA
 });
 
 const Student = mongoose.model('Student', studentSchema);

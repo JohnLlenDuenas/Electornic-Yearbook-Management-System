@@ -191,31 +191,7 @@
     background-color: #dbb434cc;
     color: white;
 }
-.notification-container {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  width: 300px;
-  z-index: 1000;
-}
 
-.notification {
-  background-color: #f8d7da;
-  color: #721c24;
-  padding: 15px;
-  margin-bottom: 10px;
-  border: 1px solid #f5c6cb;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.notification p {
-  margin: 0;
-}
-
-.notification small {
-  font-size: 0.8rem;
-}
 
 .days {
     display: grid;
@@ -244,45 +220,4 @@
 
 .dates div:hover {
     background-color: #ecf0f1;
-}
-#shareButton {
-  position: fixed;
-  bottom: 20px;
-  right: 20px; /* Changed from left to right */
-  background-color: #007bff;
-  color: white;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 1000;
-}
-
-/* Modal styling */
-#pictureModal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  justify-content: center;
-  align-items: center;
-  z-index: 1001;
-}
-
-#pictureModal img {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-#pictureModal .close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
 }

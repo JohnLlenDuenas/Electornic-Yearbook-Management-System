@@ -15,7 +15,3 @@ window.addEventListener('click', (event) => {
         shareModal.style.display = 'none';
     }
 });
-document.getElementById('toggle-button').addEventListener('click', function() {
-    document.getElementById('sidebar').classList.toggle('retracted');
-    document.getElementById('content').classList.toggle('retracted');
-  });

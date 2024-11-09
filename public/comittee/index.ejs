@@ -21,47 +21,12 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-  <style>
-    .notification-container {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      width: 300px;
-      z-index: 1000;
-    }
-  
-    .notification {
-      background-color: #f8d7da;
-      color: #721c24;
-      padding: 15px;
-      margin-bottom: 10px;
-      border: 1px solid #f5c6cb;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-  
-    .notification p {
-      margin: 0;
-    }
-  
-    .notification small {
-      font-size: 0.8rem;
-    }
-  </style>
+
 </head>
 
 <body id="body-content">
 
-  <div class="notification-container">
-    <% activityLogs.forEach(log => { %>
-      <div class="notification">
-        <p><strong>Action:</strong> <%= log.action %></p>
-        <p><strong>Details:</strong> <%= log.details %></p>
-        <p><small><%= log.timestamp.toLocaleString() %></small></p>
-      </div>
-    <% }) %>
-  </div>
-  
+ 
   <header id="header" style="background-color: black;">
     <div class="container d-flex align-items-center justify-content-between">
       <button id="toggle-button">☰</button>
@@ -348,17 +313,8 @@
     // Initial rendering of the calendar
     renderCalendar();
 </script>
-<script>
-  // Automatically hide notifications after 5 seconds
-  setTimeout(() => {
-    const notifications = document.querySelectorAll('.notification');
-    notifications.forEach(notification => {
-      notification.style.display = 'none';
-    });
-  }, 5000);
-</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-  <script src="../auth.js"></script>
+  <script src="../authjs"></script>
   <script src="../assets/js/createaccount.js"></script>
   <script src="../assets/js/logout.js"></script>
   <script src="../assets/js/fetchstudentlist.js"></script>
