@@ -57,7 +57,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
-const uri = "mongodb://localhost:27017/EYBMS_DB";
+const uri = "mongodb+srv://johnllentv:johnllentv@cluster0.pgaelxg.mongodb.net/EYBMS_DB?retryWrites=true&w=majority&appName=Cluster0";
 
 mongoose.connect(uri).then(() => {
   console.log('Connected to MongoDB');
