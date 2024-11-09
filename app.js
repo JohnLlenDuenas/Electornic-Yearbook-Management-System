@@ -57,7 +57,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
-const uri = "mongodb://localhost:27017/EYBMS_DB";
+const uri = "mongodb+srv://johnllentv:johnllentv@cluster0.pgaelxg.mongodb.net/EYBMS_DB";
 
 mongoose.connect(uri).then(() => {
   console.log('Connected to MongoDB');
@@ -72,7 +72,7 @@ app.use(session({
   secret: '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b',
   resave: false,
   saveUninitialized: true,
-  store: MongoStore.create({ mongoUrl: 'mongodb://localhost:27017/EYBMS_DB' }),
+  store: MongoStore.create({ mongoUrl: 'mongodb+srv://johnllentv:johnllentv@cluster0.pgaelxg.mongodb.net/EYBMS_DB' }),
   rolling: true,
   cookie: {
     maxAge: 15 * 60 * 1000,
