@@ -21,11 +21,30 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
  
+  <style>
 
+  </style>
 </head>
 
 <body id="body-content">
+  <div id="shareButton">Share</div>
 
+  <!-- Picture Modal -->
+  <!-- Picture Modal -->
+<div id="pictureModal">
+  <span class="close">&times;</span>
+  <!-- Use the `uploads/` path for the image source -->
+  <img id="studentPicture" src="/<%= picturePath %>" alt="Student Picture">
+</div>
+
+
+  <div class="notification-container">
+    <% if(!consentStatus) {%>
+      <div class="notification">
+        <p><strong>PLEASE FILL UP YOUR CONSENT FORM</strong></p>
+      </div>
+    <% } %>
+  </div>
  
   <header id="header" style="background-color: black;">
     <div class="container d-flex align-items-center justify-content-between">
@@ -99,8 +118,9 @@
                           </div>
                         <% }) %>
                       </div>
+                  </div>
                 </div>
-                </div>
+                
                 <div class="grid-row" style=" text-align: center; height: auto;">
                   <div class="box-shadow-full" style="padding: 5%;margin-top: -auto;">
                     <h4 style="font-size: 100%;">Calendar</h4>
@@ -120,6 +140,22 @@
                   </div>
                   <div class="dates" id="dateCells"></div>
                   </div>
+                  <div class="box-shadow-full" style="padding: 5%; ">
+                    <h4 >Consent Status</h4>
+                    <div class="align-left">
+                      <br>
+                      <div  style="margin: 2%;text-align: center;">
+                        <% if(consentStatus) {%>
+                          <p>Consent Form Filled</p>
+                          <p>Consent Form Status: <strong><%= formStatus%></strong></p>
+                          <a href="/consents/<%= stuNum%>"><button class=" nav-link button button-a button-rouded" >Consent</button></a>
+                        <% } else { %>
+                          <p>Click here to fill out the consent form</p>
+                          <a href="/consent/students"><button class=" nav-link button button-a button-rouded" >Consent</button></a>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
                   <div class="box-shadow-full" style="padding: 5%; margin-top: -10%;">
                     <h4>Users Online</h4>
                       <div class="align-left" id="onlineusers">
@@ -137,7 +173,6 @@
                       </div>
                     </div>
                   </div>
-                  
                 </div>
               </div>
               </div>
@@ -153,88 +188,45 @@
     <h1 style="color: white;">Access Denied</h1>
     <p>This page is only accessible in desktop and not on mobile devices.</p>
   </div>
-  <script src="/socket.io/socket.io.js"></script>
-  <script scr="/js/calendar.js">
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    let currentDate = new Date();
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
+  <script src="../assets/js/zoom.js"></script> 
+  <script>
+    setTimeout(() => {
+        const notifications = document.querySelectorAll('.notification');
+        notifications.forEach(notification => {
+          notification.style.display = 'none';
+        });
+      }, 5000);
+      $(document).ready(function () {
+      $('#setDeadlineButton').click(function () {
+        const deadline = $('#consent_deadline').val();
 
-    const monthYearDisplay = document.getElementById('monthYear');
-    const dateCells = document.getElementById('dateCells');
-    const prevMonthButton = document.getElementById('prevMonth');
-    const nextMonthButton = document.getElementById('nextMonth');
-
-    // Function to render the calendar
-    function renderCalendar() {
-        dateCells.innerHTML = ''; // Clear previous dates
-        const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-        const lastDateOfMonth = new Date(currentYear, currentMonth + 1, 0);
-        const lastDayOfPreviousMonth = new Date(currentYear, currentMonth, 0);
-        
-        const firstDayOfWeek = firstDayOfMonth.getDay();
-        const lastDate = lastDateOfMonth.getDate();
-        const totalDays = firstDayOfWeek + lastDate;
-
-        // Display month and year
-        monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-
-        // Add previous month's overflow days
-        for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-            const prevMonthDate = new Date(currentYear, currentMonth - 1, lastDayOfPreviousMonth.getDate() - i);
-            const day = prevMonthDate.getDate();
-            const div = document.createElement('div');
-            div.textContent = day;
-            div.style.color = '#ccc';
-            dateCells.appendChild(div);
+        if (deadline) {
+          $.ajax({
+            url: '/set-deadline',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ deadline }),
+            success: function (response) {
+              alert(response.message);
+            },
+            error: function (error) {
+              alert('Error setting deadline');
+            }
+          });
+        } else {
+          alert('Please select a deadline date.');
         }
-
-        // Add the current month's dates
-        for (let day = 1; day <= lastDate; day++) {
-            const div = document.createElement('div');
-            div.textContent = day;
-            div.onclick = () => alert(`You clicked on ${day} ${monthNames[currentMonth]} ${currentYear}`);
-            dateCells.appendChild(div);
-        }
-
-        // Add next month's overflow days (if needed)
-        const remainingCells = 42 - totalDays;
-        for (let i = 0; i < remainingCells; i++) {
-            const nextMonthDate = new Date(currentYear, currentMonth + 1, i + 1);
-            const div = document.createElement('div');
-            div.textContent = nextMonthDate.getDate();
-            div.style.color = '#ccc';
-            dateCells.appendChild(div);
-        }
-    }
-
-    // Event listeners for the buttons
-    prevMonthButton.addEventListener('click', () => {
-        currentMonth--;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear--;
-        }
-        renderCalendar();
-    });
-
-    nextMonthButton.addEventListener('click', () => {
-        currentMonth++;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear++;
-        }
-        renderCalendar();
-    });
-
-    // Initial rendering of the calendar
-    renderCalendar();
+      });
+      });
   </script>
+  <script>
+    const consentDeadlines = JSON.parse('<%- JSON.stringify(calendar) %>');
+  </script>
+  <script src="../assets/js/calendar.js"></script>
   <script src="../authjs"></script>
   <script src="../assets/js/zoom.js"></script> 
   <script src="../assets/js/accountsettings.js"></script>
   <script src="../assets/js/logout.js"></script>
-  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="../assets/vendor/php-email-form/validate.js"></script>

@@ -7,6 +7,8 @@ const bodyParser = require('body-parser');
 const cheerio = require('cheerio');
 const session = require('express-session');
 const mongoose = require('mongoose');
+const FormData = require('form-data');
+const MongoStore = require('connect-mongo');
 const { ObjectId } = mongoose.Types;
 const Student = require('./models/Student');
 const ConsentForm = require('./models/ConsentForm');
@@ -14,8 +16,21 @@ const ActivityLog = require('./models/ActivityLogs');
 const Yearbook = require('./models/Yearbook');
 const multer = require('multer');
 const csvParser = require('csv-parser');
+const mysql = require('mysql2/promise');
 const fs = require('fs');
-const upload = multer({ dest: 'uploads/' });
+const sharp = require('sharp');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));  
+  }
+});
+
+const upload = multer({ storage: storage });
+
 const http = require('http');
 const app = express();
 const socketIo = require('socket.io');
@@ -32,31 +47,14 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 
+app.use('/uploads', express.static('uploads'));
 
-const onlineUsers = {
-  student: 0,
-  committee: 0,
-  admin: 0
-};
-function emitOnlineUsers() {
-  io.emit('updateOnlineUsers', onlineUsers);
-}
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Whenever a user connects or disconnects, update online users
-io.on('connection', (socket) => {
-  // Logic to handle user connection and update `onlineUsers` object
-  // e.g., when a student connects:
-  onlineUsers.student++;
-  emitOnlineUsers();
 
-  socket.on('disconnect', () => {
-      // Logic to update `onlineUsers` when a user disconnects
-      onlineUsers.student--;
-      emitOnlineUsers();
-  });
-});
+
 
 
 const uri = "mongodb://localhost:27017/EYBMS_DB";
@@ -71,19 +69,53 @@ mongoose.connect(uri).then(() => {
 app.use(express.json());
 
 app.use(session({
-  secret: '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b', // Change this to a random string
+  secret: '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: process.env.NODE_ENV === 'production' } // Set secure to true if using https
+  store: MongoStore.create({ mongoUrl: 'mongodb://localhost:27017/EYBMS_DB' }),
+  rolling: true,
+  cookie: {
+    maxAge: 15 * 60 * 1000,
+    secure: process.env.NODE_ENV === 'production',
+  }
 }));
+
+
+app.use(async (req, res, next) => {
+  if (req.session.user) {
+    await Student.findByIdAndUpdate(req.session.user._id, { lastActive: new Date() });
+  }
+  next();
+});
+
+const countOnlineUsers = async () => {
+  const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+  const result = await Student.aggregate([
+    { $match: { lastActive: { $gte: fifteenMinutesAgo } } },
+    { $group: { _id: "$accountType", count: { $sum: 1 } } }
+  ]);
+
+  const onlineUsers = { student: 0, committee: 0, admin: 0 };
+  result.forEach(({ _id, count }) => {
+    onlineUsers[_id] = count;
+  });
+  return onlineUsers;
+};
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 const checkAuthenticated = (req, res, next) => {
   if (req.session.user) {
-    next();
+    if (Date.now() > req.session.cookie.expires) {
+      req.session.destroy((err) => {
+        if (err) return next(err);
+        res.redirect('/login'); 
+      });
+    } else {
+      next();
+    }
   } else {
-    res.redirect('/login');
+    res.redirect('/login'); 
   }
 };
 
@@ -102,7 +134,6 @@ const ensureRole = (roles) => {
 io.on('connection', (socket) => {
   console.log('Client connected');
 
-  // Send all existing logs when the client connects
   ActivityLog.find({}, (err, logs) => {
     if (err) {
       console.error('Error fetching logs:', err);
@@ -111,17 +142,13 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Cron job to check for new logs every minute
   cron.schedule('*/1 * * * *', async () => {
     try {
-      // Fetch logs that were created after the last known timestamp
       const newLogs = await ActivityLog.find({ timestamp: { $gt: lastLogTimestamp } });
 
-      // Update the last log timestamp to the most recent one
       if (newLogs.length > 0) {
         lastLogTimestamp = newLogs[newLogs.length - 1].timestamp;
 
-        // Emit the new logs to the connected clients
         io.emit('newLog', newLogs);
       }
     } catch (err) {
@@ -135,15 +162,12 @@ io.on('connection', (socket) => {
 });
 
 
-// Emit new logs after they are created
 async function logActivity(userId, action, details) {
   try {
-    // Convert userId to ObjectId if it's not already one
     const objectId = ObjectId.isValid(userId) ? new ObjectId(userId) : userId;
 
-    // Assuming ActivityLog is your Mongoose model
     const log = new ActivityLog({
-      userId: objectId, // Ensure this is correctly formatted as ObjectId
+      userId: userId || null,
       action,
       details,
       timestamp: new Date(),
@@ -153,11 +177,10 @@ async function logActivity(userId, action, details) {
     console.log('Activity logged successfully');
   } catch (error) {
     console.error('Error logging activity:', error);
-    throw error; // Rethrow the error if necessary for further handling
+    throw error;
   }
 }
 
-// Route to serve index.html
 app.get('/', (req, res) => {
   if(req.session.user==null){
     res.render(path.join(__dirname, 'public','index'));
@@ -176,15 +199,10 @@ app.get('/', (req, res) => {
   console.log(req.session.user);
 });
 
-// Route to serve login.html
 app.get('/login', (req, res) => {
-
   res.render(path.join(__dirname, 'public', 'login'));
-  
-  
 });
 
-// API to check authentication status
 app.get('/check-auth', (req, res) => {
   if (req.session.user) {
     res.json({ isAuthenticated: true, userRole: req.session.user.accountType });
@@ -193,13 +211,11 @@ app.get('/check-auth', (req, res) => {
   }
 });
 
-// Serve static files for authenticated users
 app.use('/admin', checkAuthenticated, ensureRole(['admin']), express.static(path.join(__dirname, 'public', 'admin')));
 app.use('/student', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'student')));
 app.use('/committee', checkAuthenticated, ensureRole(['committee']), express.static(path.join(__dirname, 'public', 'committee')));
 app.use('/consent', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'consent')));
 
-// Utility function to get current date and time
 function getCurrentDateTime() {
   const now = new Date();
   const date = now.toLocaleDateString();
@@ -213,13 +229,11 @@ app.use('/fonts', express.static(path.join(__dirname, 'public', 'fonts')));
 
 
 
-// Consent fill route
 app.post('/consent-fill', async (req, res) => {
   const dateTime = getCurrentDateTime();
   const { student_Number, student_Name, gradeSection, parentguardian_name, relationship, contactno, formStatus } = req.body;
 
   try {
-    // Check if student exists
     const student = await Student.findOne({ studentNumber: student_Number });
     if (!student) {
       await logActivity(null, 'Consent fill failed', `Student ${student_Number} not found`);
@@ -232,7 +246,6 @@ app.post('/consent-fill', async (req, res) => {
       return res.status(400).json({ message: 'Consent form for this student already filled' });
     }
 
-    // Create a new consent form document
     const consentFormData = new ConsentForm({
       student_Number,
       student_Name,
@@ -244,10 +257,8 @@ app.post('/consent-fill', async (req, res) => {
       date_and_Time_Filled: dateTime
     });
 
-    // Save the consent form to the database
     await consentFormData.save();
 
-    // Update the consentfilled field for the student
     student.consentfilled = true;
     await student.save();
 
@@ -301,7 +312,6 @@ app.post('/change-password', checkAuthenticated, async (req, res) => {
     const iv = Buffer.from(user.iv, 'hex');
     const key = Buffer.from(user.key, 'hex');
 
-    // Decrypt current password
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
     let decryptedPassword = decipher.update(user.password, 'hex', 'utf8');
     decryptedPassword += decipher.final('utf8');
@@ -310,12 +320,10 @@ app.post('/change-password', checkAuthenticated, async (req, res) => {
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
 
-    // Encrypt new password
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
     let encryptedPassword = cipher.update(newPassword, 'utf8', 'hex');
     encryptedPassword += cipher.final('hex');
 
-    // Update password without triggering full validation
     await Student.findByIdAndUpdate(user._id, { password: encryptedPassword });
 
     res.status(200).json({ message: 'Password changed successfully' });
@@ -326,52 +334,45 @@ app.post('/change-password', checkAuthenticated, async (req, res) => {
 });
 
 
-
-app.post('/create-account', async (req, res) => {
-  const { studentNumber, email, birthday, accountType } = req.body; // Accept birthday from request
+app.post('/create-account', upload.single('picture'), async (req, res) => {
+  const { studentNumber, email, birthday, accountType } = req.body;
+  const picturePath = req.file ? req.file.path : null;  // Save the file path
 
   try {
-    // Convert the birthday to use as the default password
-    const password = birthday.replace(/-/g, ''); // Use the birthday as the password (in YYYY-MM-DD format)
-    const iv = crypto.randomBytes(16); // IV is 16 bytes
-    const encryptionKey = crypto.randomBytes(32); // Key is 32 bytes (256 bits)
-
-    // Encrypt the password (birthday)
+    const password = birthday.replace(/[-/]/g, '');
+    const iv = crypto.randomBytes(16);
+    const encryptionKey = crypto.randomBytes(32);
     const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
     let encryptedPassword = cipher.update(password, 'utf8', 'hex');
     encryptedPassword += cipher.final('hex');
 
-    const consntf = false;
-
-    // Create a new student document with the encrypted password, key, and IV
     const newUser = new Student({
       studentNumber,
       email,
       password: encryptedPassword,
-      birthday: birthday, // Store birthday in YYYYMMDD format
+      birthday,
       accountType,
-      iv: iv.toString('hex'), // Store IV as hex string
-      key: encryptionKey.toString('hex'), // Store key as hex string
-      consentfilled: consntf,
+      iv: iv.toString('hex'),
+      key: encryptionKey.toString('hex'),
+      consentfilled: false,
       passwordChanged: false,
+      picture: picturePath  
     });
 
     await newUser.save();
-    await logActivity(newUser._id, 'Account created', 'Account created successfully');
     res.status(201).json({ message: 'Account created successfully' });
   } catch (error) {
-    console.error('Error creating account:', error);
-    await logActivity(null, 'Error creating account', error.message);
+    console.error('Error details:', error);
     res.status(500).json({ message: 'Error creating account' });
   }
 });
+
 
 
 app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Find the student by ID
     const student = await Student.findById(id);
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
@@ -382,37 +383,31 @@ app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async
       return res.status(400).json({ message: 'Birthday not found for this student' });
     }
 
-    // Log the key and IV to check if they're correct
+    const formattedBirthday = birthday.replace(/[-/]/g, '');
     console.log('Student Key:', student.key);
     console.log('Student IV:', student.iv);
 
-    // Validate the stored key and IV
-    if (!student.key || student.key.length !== 64) { // Key must be 64 hex characters (32 bytes)
+    if (!student.key || student.key.length !== 64) {
       return res.status(500).json({ message: 'Stored encryption key is invalid or corrupted' });
     }
-    if (!student.iv || student.iv.length !== 32) { // IV must be 32 hex characters (16 bytes)
+    if (!student.iv || student.iv.length !== 32) { 
       return res.status(500).json({ message: 'Stored initialization vector (IV) is invalid or corrupted' });
     }
-
-    // Convert the key and IV from hex to buffer
     const keyBuffer = Buffer.from(student.key, 'hex');
     const ivBuffer = Buffer.from(student.iv, 'hex');
 
     console.log('Key Buffer:', keyBuffer);
     console.log('IV Buffer:', ivBuffer);
-
-    // Encrypt the birthday to use as the new password
     const cipher = crypto.createCipheriv('aes-256-cbc', keyBuffer, ivBuffer);
-    let encrypted = cipher.update(birthday, 'utf8', 'hex');
+    let encrypted = cipher.update(formattedBirthday, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     console.log('Encrypted password:', encrypted);
 
-    // Update the student's password and mark as not changed
     student.password = encrypted;
     student.passwordChanged = false;
 
     await student.save();
-    await logActivity(student._id, 'Password reset successfully for student ID:'+id, 'Password reset successfully for student ID:'+id+'successfully');
+    await logActivity(student._id, 'Password reset successfully for student ID:' + id, 'Password reset successfully for student ID:' + id + ' successfully');
     console.log('Password reset successfully for student ID:', id);
     res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
@@ -421,18 +416,17 @@ app.post('/reset-password/:id', checkAuthenticated, ensureRole(['admin']), async
   }
 });
 
+
 app.post('/change-password', checkAuthenticated, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   try {
-    // Find the logged-in user based on session
     const user = await Student.findOne({ studentNumber: req.session.user.studentNumber });
 
     if (!user) {
       return res.status(400).json({ message: 'User not found' });
     }
 
-    // Decrypt current password to verify
     const iv = Buffer.from(user.iv, 'hex');
     const key = Buffer.from(user.key, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
@@ -443,14 +437,12 @@ app.post('/change-password', checkAuthenticated, async (req, res) => {
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
 
-    // Encrypt the new password
     const newIv = crypto.randomBytes(16);
     const newEncryptionKey = crypto.randomBytes(32);
     const cipher = crypto.createCipheriv('aes-256-cbc', newEncryptionKey, newIv);
     let encryptedPassword = cipher.update(newPassword, 'utf8', 'hex');
     encryptedPassword += cipher.final('hex');
 
-    // Update user's password
     user.password = encryptedPassword;
     user.iv = newIv.toString('hex');
     user.key = newEncryptionKey.toString('hex');
@@ -458,7 +450,6 @@ app.post('/change-password', checkAuthenticated, async (req, res) => {
 
     await user.save();
 
-    // Log the activity
     await logActivity(user._id, 'Changed Password', 'Password changed successfully');
     res.status(200).json({ message: 'Password changed successfully' });
   } catch (error) {
@@ -468,22 +459,37 @@ app.post('/change-password', checkAuthenticated, async (req, res) => {
 });
 
 
-app.post('/upload-csv', upload.single('csvFile'), (req, res) => {
-  const filePath = path.join(__dirname, 'uploads', req.file.filename);
+app.post('/upload-csv', upload.fields([
+  { name: 'csvFile', maxCount: 1 },
+  { name: 'pictures', maxCount: 20 }
+]), (req, res) => {
+  const csvFilePath = path.join(__dirname, 'uploads', req.files['csvFile'][0].filename);
+
+  const pictureFiles = req.files['pictures'];
+  const picturePaths = {};
+  if (pictureFiles) {
+    pictureFiles.forEach(file => {
+      const filePath = `uploads/pictures/${file.filename}`;
+      picturePaths[file.originalname] = filePath;
+    });
+  }
 
   const accounts = [];
   
-  fs.createReadStream(filePath)
+  fs.createReadStream(csvFilePath)
     .pipe(csvParser())
     .on('data', (row) => {
-      const { studentNumber, email, birthday, accountType } = row;
-      const plainPassword = birthday.replace(/-/g, '');
+      const { studentNumber, email, birthday, accountType, picture } = row;
+
+      const password = birthday.replace(/[-/]/g, '');
       
       const iv = crypto.randomBytes(16);
       const encryptionKey = crypto.randomBytes(32);
       const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
-      let encryptedPassword = cipher.update(plainPassword, 'utf8', 'hex');
+      let encryptedPassword = cipher.update(password, 'utf8', 'hex');
       encryptedPassword += cipher.final('hex');
+
+      const picturePath = picture ? picturePaths[picture] || null : null;
 
       accounts.push({
         studentNumber,
@@ -494,16 +500,16 @@ app.post('/upload-csv', upload.single('csvFile'), (req, res) => {
         iv: iv.toString('hex'),
         key: encryptionKey.toString('hex'),
         consentfilled: false,
-        passwordChanged: false
+        passwordChanged: false,
+        picture: picturePath  
       });
     })
     .on('end', async () => {
       try {
-        // Save all accounts
         for (const account of accounts) {
           const newUser = new Student(account);
           await newUser.save();
-          await logActivity(newUser._id, 'Account created', 'Account created successfully');
+          await logActivity(newUser._id, 'Batch account created', 'Account created successfully');
         }
         res.status(201).json({ message: 'Accounts created successfully' });
       } catch (error) {
@@ -514,8 +520,7 @@ app.post('/upload-csv', upload.single('csvFile'), (req, res) => {
           res.status(500).json({ message: 'Error creating accounts' });
         }
       }
-      // Delete the temporary file after processing
-      fs.unlinkSync(filePath);
+      fs.unlinkSync(csvFilePath);
     })
     .on('error', (error) => {
       console.error('Error reading CSV file:', error);
@@ -538,23 +543,19 @@ app.get('/setup-2fa', async (req, res) => {
       return res.status(404).send('User not found');
     }
 
-    // Generate 2FA secret
     const secret = speakeasy.generateSecret({ length: 20 });
     console.log("Generated secret for user:", secret.base32);
 
-    // Generate otpauth URL manually for QR code generation
-    const otpauthUrl = `otpauth://totp/ElectronicYearbookManagementSystem:${user.studentNumber}?secret=${secret.base32}&issuer=ElectronicYearbookManagementSystem`;
+    const otpauthUrl = `otpauth://totp/E-Yearbook_MS:${user.studentNumber}?secret=${secret.base32}&issuer=ElectronicYearbookManagementSystem`;
 
-    // Generate QR code for the secret
+
     const qrCodeUrl = await QRCode.toDataURL(otpauthUrl);
     console.log("Generated QR Code URL:", qrCodeUrl);
 
-    // Save the secret in the user's record in the database (base32 encoding)
     user.twoFactorSecret = secret.base32;
     await user.save();
     console.log("Saved secret for user:", user.studentNumber, user.twoFactorSecret);
 
-    // Render the setup page with the QR code
     res.render('setup-2fa', { qrCodeUrl });
 
   } catch (error) {
@@ -564,7 +565,7 @@ app.get('/setup-2fa', async (req, res) => {
 });
 
 app.post('/verify-2fa', async (req, res) => {
-  console.log('Request body:', req.body);  // Log entire body for debugging
+  console.log('Request body:', req.body);
   const { token } = req.body;
   const sessionUser = req.session.user;
 
@@ -592,8 +593,6 @@ app.post('/verify-2fa', async (req, res) => {
       console.log("No token provided");
       return res.status(400).json({ message: 'Token is required' });
     }
-
-    // Verify the provided TOTP token
     const verified = speakeasy.totp.verify({
       secret: user.twoFactorSecret,
       encoding: 'base32',
@@ -605,6 +604,7 @@ app.post('/verify-2fa', async (req, res) => {
       user.twoFactorEnabled = true;
       await user.save();
 
+      await logActivity(user._id, '2FA setup successful', `Admin ${user.studentNumber}  2FA setup successful`);
       console.log("2FA setup successful for user:", user.studentNumber);
       return res.status(200).json({ message: '2FA setup complete', redirectUrl: '/admin/yearbooks' });
     } else {
@@ -618,10 +618,6 @@ app.post('/verify-2fa', async (req, res) => {
   }
 });
 
-
-
-
-// Login route with activity logging
 app.post('/loginroute', async (req, res) => {
   const { studentNumber, password, token } = req.body;
 
@@ -633,7 +629,6 @@ app.post('/loginroute', async (req, res) => {
       return res.status(400).json({ message: 'Invalid student number or password' });
     }
 
-    // Decrypt the stored password
     const iv = Buffer.from(user.iv, 'hex');
     const key = Buffer.from(user.key, 'hex');
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
@@ -647,14 +642,11 @@ app.post('/loginroute', async (req, res) => {
     }
 
     if (decryptedPassword === password) {
-      // **2FA Logic for Admins**
       if (user.accountType === 'admin' && user.twoFactorEnabled) {
-        // If the token is not provided, inform the client that it's required
         if (!token) {
           return res.status(200).json({ message: '2FA required' });
         }
 
-        // Verify the provided TOTP token
         const verified = speakeasy.totp.verify({
           secret: user.twoFactorSecret,
           encoding: 'base32',
@@ -662,13 +654,11 @@ app.post('/loginroute', async (req, res) => {
           window: 1  
         });
 
-        // Handle invalid token
         if (!verified) {
           return res.status(400).json({ message: 'Invalid 2FA token' });
         }
       }
 
-      // If 2FA check passed (or not needed), proceed to login
       req.session.user = user;
 
       let redirectUrl = '';
@@ -679,10 +669,8 @@ app.post('/loginroute', async (req, res) => {
           redirectUrl = '../change_password/index.html';
           action = 'Student redirected to change password page';
           
-        } else if (!user.consentfilled) {
-          redirectUrl = '../consent/index.html';
-          action = 'Student redirected to consent form';
         } else {
+          
           redirectUrl = '/student/yearbooks';
           action = 'Logged in as student';
         }
@@ -697,7 +685,6 @@ app.post('/loginroute', async (req, res) => {
         yearbooks();
       }
 
-      // Log activity and return success
       await logActivity(user._id, action, `User ${user.studentNumber} logged in as ${user.accountType}`);
       return res.status(200).json({ message: 'Login successful', redirectUrl: redirectUrl });
     } else {
@@ -711,41 +698,17 @@ app.post('/loginroute', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-// Logout route
 app.post('/logout', (req, res) => {
-  if (req.session.user) {
-    const accountType = req.session.user.accountType;
-
-    // Decrease the count for the appropriate accountType
-    if (accountType === 'student') {
-      onlineUsers.student = Math.max(0, onlineUsers.student - 1);
-    } else if (accountType === 'committee') {
-      onlineUsers.committee = Math.max(0, onlineUsers.committee - 1);
-    } else if (accountType === 'admin') {
-      onlineUsers.admin = Math.max(0, onlineUsers.admin - 1);
+  
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error logging out' });
     }
-
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error logging out' });
-      }
-      res.status(200).json({ message: 'Logout successful' });
-    });
-  } else {
-    res.status(400).json({ message: 'No user logged in' });
-  }
+    res.status(200).json({ message: 'Logout successful' });
+  });
+  
 });
 
-
-
-// Fetch consent form data
 app.get('/consentformfetch', checkAuthenticated, ensureRole(['admin', 'committee']), async (req, res) => {
   try {
     const consentForms = await ConsentForm.find();
@@ -757,8 +720,7 @@ app.get('/consentformfetch', checkAuthenticated, ensureRole(['admin', 'committee
   }
 });
 
-//list comitte and student
-app.get('/students', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+app.get('/students', checkAuthenticated, ensureRole(['admin' , 'committee']), async (req, res) => {
   try {
     const students = await Student.find({ accountType: 'student' });
     res.json(students);
@@ -767,35 +729,72 @@ app.get('/students', checkAuthenticated, ensureRole(['admin']), async (req, res)
   }
   
 });
-app.get('/comittee', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+app.get('/comittee', checkAuthenticated, ensureRole(['admin','committee']), async (req, res) => {
   try {
-    const comittee = await Student.find({ accountType: 'comittee' });
+    const comittee = await Student.find({ accountType: 'committee' });
     res.json(comittee);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-//admin part
 app.get('/admin/yearbooks', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     yearbooks();
+    const onlineUsers = await countOnlineUsers();
     const user = await Student.findById(req.session.user);
+    const yearbook = await Yearbook.find();
     const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
-      .sort({ views: -1 }) // Sort by views in descending order
-      .limit(3); // Limit to 3 yearbooks
-
+      .sort({ views: -1 })
+      .limit(3);
     const publishedYearbooks = await Yearbook.find({ status: 'published' });
     const pendingYearbooks = await Yearbook.find({ status: 'pending' });
+    const calendar = await Yearbook.find({ consentDeadline: { $exists: true } });
 
-    // Pass onlineUsers to the template
-    res.render(path.join(__dirname, 'public', 'admin', 'index'), { publishedYearbooks, pendingYearbooks, onlineUsers,mostViewedYearbooks,user  });
+    const userId = req.session.user._id; 
+    const accountType = req.session.user.accountType;
+
+    const allowedActions = [
+      'Logged in as committee',
+      'Logged in as admin',
+      'Yearbook Published',
+      'Yearbook Pending',
+      '2FA setup successful'
+    ];
+
+    let activityLogs = [];
+
+    if (accountType === 'admin' || accountType === 'committee') {
+      activityLogs = await ActivityLog.find({
+        viewedBy: { $ne: userId },
+        action: { $in: allowedActions }
+      }).sort({ timestamp: -1 }).limit(5);
+
+      await Promise.all(activityLogs.map(log => {
+        if (!log.viewedBy) {
+          log.viewedBy = [];
+        }
+        log.viewedBy.push(userId);
+        return log.save();
+      }));
+    }
+
+    res.render(path.join(__dirname, 'public', 'admin', 'index'), {
+      activityLogs,
+      publishedYearbooks,
+      pendingYearbooks,
+      onlineUsers,
+      mostViewedYearbooks,
+      user,
+      yearbook,
+      calendar
+    });
+
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
     res.status(500).json({ message: 'Error fetching yearbooks' });
   }
 });
-
 
 
 app.get('/yearbook/:id', async (req, res) => {
@@ -810,20 +809,14 @@ app.get('/yearbook/:id', async (req, res) => {
     yearbook.views += 1;
     yearbook.lastViewed = Date.now();
     await yearbook.save();
-    // Fetch the HTML content of the page
     const response = await axios.get(url);
     const html = response.data;
 
-    // Load the HTML into Cheerio (which works like jQuery for server-side)
     const $ = cheerio.load(html);
+    const bodyContent = $('body').html();
 
-    // Extract only the content of the <body> tag
-    const bodyContent = $('body').html(); // Gets the inner HTML of the body tag
-
-    // Render the EJS template with the body content
     res.render('yearbook', { bodyContent });
 
-    // Optionally log the activity
     await logActivity(yearbookId._id, 'Admin View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
 
   } catch (error) {
@@ -838,13 +831,11 @@ cron.schedule('0 0 * * *', async () => {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    // Find yearbooks that haven't been viewed in over 6 months and are still published
     const inactiveYearbooks = await Yearbook.find({
       lastViewed: { $lt: sixMonthsAgo },
       status: 'published'
     });
 
-    // Unpublish these yearbooks by setting their status to 'pending'
     inactiveYearbooks.forEach(async (yearbook) => {
       yearbook.status = 'pending';
       await yearbook.save();
@@ -855,20 +846,15 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-
-
-// Publish a yearbook by changing its status to 'published'
 app.post('/yearbook/:id/publish', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     const yearbookId = req.params.id;
 
-    // Update the yearbook status to 'published'
     await Yearbook.findOneAndUpdate({ id: yearbookId }, { status: 'published' });
 
-    // Optionally log the activity
     await logActivity(yearbookId._id, 'Yearbook Published', `Yearbook ${yearbookId} published successfully`);
 
-    res.redirect('/admin/yearbooks'); // Redirect back to the yearbooks page
+    res.redirect('/admin/yearbooks');
   } catch (error) {
     console.error('Error publishing yearbook:', error);
     res.status(500).json({ message: 'Error publishing yearbook' });
@@ -878,61 +864,63 @@ app.post('/yearbook/:id/publish', checkAuthenticated, ensureRole(['admin']), asy
 app.post('/yearbook/:id/pending', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     const yearbookId = req.params.id;
-
-    // Update the yearbook status to 'published'
     await Yearbook.findOneAndUpdate({ id: yearbookId }, { status: 'pending' });
-
-    // Optionally log the activity
     await logActivity(yearbookId._id, 'Yearbook Pending', `Yearbook ${yearbookId} pending successfully`);
 
-    res.redirect('/admin/yearbooks'); // Redirect back to the yearbooks page
+    res.redirect('/admin/yearbooks');
   } catch (error) {
     console.error('Error pending yearbook:', error);
     res.status(500).json({ message: 'Error pending yearbook' });
   }
 });
 
-
-//comittee part
-
-app.get('/comittee/yearbooks', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+app.get('/comittee/yearbooks', checkAuthenticated, ensureRole(['committee']), async (req, res) => {
   try {
-    // Fetch yearbooks from WordPress
-    const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
-    const yearbooks = response.data;
 
-    // Save yearbooks to MongoDB
-    for (const yearbook of yearbooks) {
-      // Check if the yearbook already exists in the database
-      const existingYearbook = await Yearbook.findOne({ id: yearbook.id });
-
-      if (!existingYearbook) {
-        // Save new yearbook to MongoDB
-        await Yearbook.create({
-          id: yearbook.id,
-          title: yearbook.title,
-          status: 'pending', // Default status
-        });
-      }
-    }
+    yearbooks();
+    const user = await Student.findById(req.session.user);
+    const onlineUsers = await countOnlineUsers();
     const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
-    .sort({ views: -1 }) // Sort by views in descending order
-    .limit(3); // Limit to 3 yearbooks
+    .sort({ views: -1 })
+    .limit(3);
     
-    // Fetch all yearbooks from MongoDB, grouped by status
     const publishedYearbooks = await Yearbook.find({ status: 'published' });
     const pendingYearbooks = await Yearbook.find({ status: 'pending' });
 
-    // Render the admin dashboard with published and pending yearbooks
-    res.render(path.join(__dirname, 'public', 'comittee', 'index'), { publishedYearbooks, pendingYearbooks,mostViewedYearbooks, onlineUsers });
+    const userId = req.session.user._id;
+    const accountType = req.session.user.accountType; 
+
+    const allowedActions = [
+      'Logged in as committee',
+      'Yearbook Published',
+      'Yearbook Pending'
+    ];
+
+    if (accountType === 'admin' || accountType === 'committee') {
+      const activityLogs = await ActivityLog.find({
+        viewedBy: { $ne: userId },
+        action: { $in: allowedActions } 
+      }).sort({ timestamp: -1 }).limit(5);
+
+      await Promise.all(activityLogs.map(log => {
+        if (!log.viewedBy) {
+          log.viewedBy = [];
+        }
+        log.viewedBy.push(userId);
+        return log.save();
+      }));
+
+      res.render(path.join(__dirname, 'public', 'comittee', 'index'), { activityLogs, publishedYearbooks, pendingYearbooks, onlineUsers, mostViewedYearbooks, user });
+    } else {
+      res.render(path.join(__dirname, 'public', 'comittee', 'index'), { activityLogs: [], publishedYearbooks, pendingYearbooks, onlineUsers, mostViewedYearbooks, user });
+    }
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
     res.status(500).json({ message: 'Error fetching yearbooks' });
   }
 });
-// for comittee fetch yearbooks
 
-app.get('/comitteeyearbook/:id', async (req, res) => {
+app.get('/comitteeyearbook/:id', checkAuthenticated, ensureRole(['committee']), async (req, res) => {
   try {
     const yearbookId = req.params.id;
     const url = 'http://localhost/wordpress/wp-admin/edit.php?post_type=3d-flip-book';
@@ -945,7 +933,6 @@ app.get('/comitteeyearbook/:id', async (req, res) => {
     yearbook.lastViewed = Date.now();
     await yearbook.save();
 
-    // Fetch the HTML content of the WordPress page
     const response = await axios.get(url, {
       headers: {
         Cookie: 'wordpress_logged_in_bbfa5b726c6b7a9cf3cda9370be3ee91=root%7C1729738427%7CfVkaxMbMFZHhLX7hkxBg2fwUCqs4xzbA64eEz0i2cnb%7C669838cbfedeb39f1e0d9423e8808823f1ebcb063bc486c6b195f4580a61c158; wordpress_bbfa5b726c6b7a9cf3cda9370be3ee91=root%7C1729738427%7CfVkaxMbMFZHhLX7hkxBg2fwUCqs4xzbA64eEz0i2cnb%7C11364a94f3548b33a5ad1ed5d269543a1892e153a93c2353e966b3da90e56437; connect.sid=s%3AymPR7RCCbnt3OYAo3U9NSul6EyawUrlK.NcBHT4eZ38mktYE00Ah5eJJWxzeod%2Bjocnx1WrnGV0I'
@@ -953,10 +940,8 @@ app.get('/comitteeyearbook/:id', async (req, res) => {
     });
     const html = response.data;
 
-    // Load the full HTML content into Cheerio
     const $ = cheerio.load(html);
 
-    // Fix relative URLs for assets (CSS, JS, images)
     $('link[rel="stylesheet"]').each((i, el) => {
       const href = $(el).attr('href');
       if (href && href.startsWith('/')) {
@@ -978,10 +963,8 @@ app.get('/comitteeyearbook/:id', async (req, res) => {
       }
     });
 
-    // Render the full page (includes head, body, and scripts)
     res.send($.html());
 
-    // Optionally log the activity
     await logActivity(yearbookId._id, 'Admin View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
 
   } catch (error) {
@@ -990,70 +973,256 @@ app.get('/comitteeyearbook/:id', async (req, res) => {
   }
 });
 
+app.get('/consent/students', checkAuthenticated, ensureRole(['student']), async (req, res) => {
+  const studentNumber = req.session.user.studentNumber; 
+  res.render(path.join(__dirname, 'public', 'consent', 'index'), { studentNumber });
+});
 
+app.get('/consents/:studentNumber', async (req, res) => {
+  try {
+    const consentForm = await ConsentForm.findOne({ student_Number: req.params.studentNumber });
+    
+    if (consentForm) {
+      res.render(path.join(__dirname, 'public', 'consent-view', 'index'), { consentForm });
+    } else {
+      res.status(404).render(path.join(__dirname, 'public', 'consent-view', 'index'), { consentForm: null });
+    }
+  } catch (error) {
+    console.error('Error fetching consent form:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
-//Fetch List Yb Student
+app.get('/consent/:studentNumber', async (req, res) => {
+  try {
+    const consentForm = await ConsentForm.findOne({ student_Number: req.params.studentNumber });
+    if (consentForm) {
+      res.json(consentForm);
+    } else {
+      res.status(404).json({ message: 'Consent form not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching consent form:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 app.get('/student/yearbooks', checkAuthenticated, ensureRole(['student']), async (req, res) => {
   try {
-    // Fetch yearbooks from WordPress
+    const onlineUsers = await countOnlineUsers();
+    const studentId = req.session.user._id;
+    const student = await Student.findById(studentId);
+    const consentForm = await ConsentForm.findOne({ student_Number: student.studentNumber });
+    const yearbook = await Yearbook.find();
+    const calendar = await Yearbook.find({ consentDeadline: { $exists: true } });
+    const stuNum = student.studentNumber;
     const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
     const yearbooks = response.data;
 
-    // Save yearbooks to MongoDB
     for (const yearbook of yearbooks) {
-      // Check if the yearbook already exists in the database
       const existingYearbook = await Yearbook.findOne({ id: yearbook.id });
-
       if (!existingYearbook) {
-        // Save new yearbook to MongoDB
-        await Yearbook.create({
-          id: yearbook.id,
-          title: yearbook.title,
-          status: 'pending', // Default status
-        });
+        await Yearbook.create({ id: yearbook.id, title: yearbook.title, status: 'pending' });
       }
     }
-    const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
-    .sort({ views: -1 }) // Sort by views in descending order
-    .limit(3); // Limit to 3 yearbooks
 
-    // Fetch all yearbooks from MongoDB, grouped by status
+    const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
+      .sort({ views: -1 })
+      .limit(3);
     const publishedYearbooks = await Yearbook.find({ status: 'published' });
     const pendingYearbooks = await Yearbook.find({ status: 'pending' });
+    
+    let picturePath = null;
+    if (student && student.picture) {
+      picturePath = student.picture;
+    }
 
-    // Render the admin dashboard with published and pending yearbooks
-    res.render(path.join(__dirname, 'public', 'student', 'index'), { publishedYearbooks, pendingYearbooks,mostViewedYearbooks, onlineUsers  });
+    res.render(path.join(__dirname, 'public', 'student', 'index'), {
+      publishedYearbooks,
+      pendingYearbooks,
+      mostViewedYearbooks,
+      onlineUsers,
+      consentStatus: student.consentfilled,
+      formStatus: consentForm ? consentForm.form_Status : null,
+      yearbook, 
+      calendar,
+      stuNum,
+      picturePath
+    });
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
     res.status(500).json({ message: 'Error fetching yearbooks' });
   }
 });
-//
+
+app.get('/student/get-picture', checkAuthenticated, ensureRole(['student']), async (req, res) => {
+  try {
+    const studentId = req.session.user._id;
+    const student = await Student.findById(studentId);
+    
+    if (student && student.picture) {
+      res.json({ picturePath: student.picture });
+    } else {
+      res.json({ picturePath: null });
+    }
+  } catch (error) {
+    console.error('Error fetching student picture:', error);
+    res.status(500).json({ message: 'Error fetching student picture' });
+  }
+});
+
 app.get('/studentyearbook/:id', async (req, res) => {
   try {
     const yearbookId = req.params.id;
     const url = `http://localhost/wordpress/3d-flip-book/${yearbookId}/`;
     
-
-    // Fetch the HTML content of the page
     const response = await axios.get(url);
     const html = response.data;
 
-    // Load the HTML into Cheerio (which works like jQuery for server-side)
     const $ = cheerio.load(html);
 
-    // Extract only the content of the <body> tag
-    const bodyContent = $('body').html(); // Gets the inner HTML of the body tag
+    const bodyContent = $('body').html();
 
-    // Render the EJS template with the body content
     res.render('studentyearbook', { bodyContent });
 
-    // Optionally log the activity
     await logActivity(yearbookId._id, 'Student View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
 
   } catch (error) {
     console.error('Error fetching yearbook content:', error);
     res.status(500).json({ message: 'Error fetching yearbook' });
+  }
+});
+
+const connection  = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: null,
+  database: 'yearbook_db',
+});
+
+const WORDPRESS_URL = 'http://localhost/wordpress/wp-json/wp/v2/media';
+const WORDPRESS_USERNAME = 'root';
+const WORDPRESS_APPLICATION_PASSWORD = 'CPm7 FA4m G1L5 XOd1 1mdT Aysr';
+
+
+cron.schedule('*/1 * 0-1 * * *', async () => {
+  try {
+    const acceptedConsentForms = await ConsentForm.find({ form_Status: 'Accepted' });
+
+    for (const consentForm of acceptedConsentForms) {
+      const student = await Student.findOne({
+        studentNumber: consentForm.student_Number,
+        consentfilled: true,
+        pictureUploaded: false
+      });
+
+      if (!student) continue;
+
+      const placeholderImagePath = path.join(__dirname, student.picture.replace(/\\/g, '/'));
+      const studentNumber = student.studentNumber;
+      let imgBuffer;
+
+      if (student.picture && student.picture.includes('base64,')) {
+        const base64Image = student.picture.split('base64,')[1];
+        imgBuffer = Buffer.from(base64Image, 'base64');
+      } else {
+        console.warn(`Using placeholder image for student ${studentNumber} due to missing or invalid picture data.`);
+        imgBuffer = fs.readFileSync(placeholderImagePath);
+      }
+
+      if (imgBuffer.length < 1000) {
+        console.error(`Buffer size too small for student ${studentNumber}. Skipping.`);
+        continue;
+      }
+
+      const filePath = path.join(__dirname, `${studentNumber}.jpg`);
+      try {
+        await sharp(imgBuffer).toFormat('jpeg').toFile(filePath);
+        console.log(`Image processed and saved for student ${studentNumber}`);
+
+        const formData = new FormData();
+        formData.append('file', fs.createReadStream(filePath), `${studentNumber}.jpg`);
+        formData.append('title', `Student ${studentNumber}`);
+
+        const auth = Buffer.from(`${WORDPRESS_USERNAME}:${WORDPRESS_APPLICATION_PASSWORD}`).toString('base64');
+
+        const response = await axios.post(WORDPRESS_URL, formData, {
+          headers: {
+            'Authorization': `Basic ${auth}`,
+            ...formData.getHeaders()
+          }
+        });
+
+        await Student.updateOne(
+          { _id: student._id },
+          { $set: { pictureUploaded: true } }
+        );
+
+
+        setTimeout(() => {
+          try {
+            fs.unlinkSync(filePath);
+            console.log(`Uploaded Picture of ${studentNumber}`);
+          } catch (unlinkError) {
+            console.error(`Failed to delete temporary file for student ${studentNumber}:`, unlinkError);
+          }
+        }, 500);
+      } catch (uploadError) {
+        console.error(`Failed to upload image for student ${studentNumber}:`, uploadError);
+      }
+    }
+  } catch (error) {
+    console.error('Error in cron job:', error);
+  }
+});
+
+
+app.post('/submit-consent', async (req, res) => {
+  const { studentNumber, consentStatus } = req.body;
+
+  try {
+    const student = await Student.findOne({ studentNumber });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    if (consentStatus === 'agree' && student.picture) {
+      const query = `INSERT INTO student_pictures (student_number, picture) VALUES (?, ?)`;
+      connection.query(query, [student.studentNumber, student.picture], (err, result) => {
+        if (err) {
+          console.error('Error inserting picture into MySQL:', err);
+          return res.status(500).json({ message: 'Error uploading picture to MySQL' });
+        }
+
+        student.consentfilled = true;
+        student.save();
+
+        res.status(200).json({ message: 'Consent submitted and picture uploaded successfully' });
+      });
+    } else {
+      res.status(400).json({ message: 'Consent not agreed or no picture available' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error processing consent' });
+  }
+});
+
+app.post('/set-deadline', async (req, res) => {
+  const { yearbookId, deadline } = req.body;
+  try {
+    const updatedYearbook = await Yearbook.findByIdAndUpdate(
+      yearbookId,
+      { consentDeadline: deadline },
+      { new: true }
+    );
+    if (updatedYearbook) {
+      res.status(200).json({ message: 'Deadline set successfully!' });
+    } else {
+      res.status(404).json({ message: 'Yearbook not found.' });
+    }
+  } catch (error) {
+    console.error('Error setting deadline:', error);
+    res.status(500).json({ message: 'Error setting deadline.' });
   }
 });
 
@@ -1069,47 +1238,41 @@ async function fetchFlipbooks() {
   }
 }
 
-// Example of calling the function
 fetchFlipbooks().then(flipbooks => {
-  // Now you have the flipbooks data
   console.log(flipbooks);
 });
 
-async function yearbooks(){
-  // Fetch all yearbooks from the API
-const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
-const fetchedYearbooks = response.data;
+async function yearbooks() {
+  const response = await axios.get('http://localhost/wordpress/wp-json/myplugin/v1/flipbooks');
+  const fetchedYearbooks = response.data;
 
-// Fetch all yearbooks currently in the database
-const existingYearbooks = await Yearbook.find({});
+  const existingYearbooks = await Yearbook.find({});
 
-// Create a set of fetched yearbook IDs for easy lookup
-const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => yearbook.id));
+  const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
 
-// Remove yearbooks from the database that are not in the fetched data
-for (const existingYearbook of existingYearbooks) {
-  if (!fetchedYearbookIds.has(existingYearbook.id)) {
-    // If the yearbook is not in the fetched list, remove it from the database
-    await Yearbook.deleteOne({ id: existingYearbook.id });
+  for (const existingYearbook of existingYearbooks) {
+    if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
+      await Yearbook.deleteOne({ id: existingYearbook.id });
+    }
+  }
+
+  for (const yearbook of fetchedYearbooks) {
+    const existing = await Yearbook.findOne({ id: yearbook.id });
+
+    const result = await Yearbook.updateOne(
+      { id: yearbook.id },
+      {
+        title: yearbook.title,
+        thumbnail: yearbook.thumbnail,
+      },
+      { upsert: true } 
+    );
+
+    if (!existing) {
+      await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
+    }
   }
 }
-
-// Add new yearbooks from the fetched data that do not exist in the database
-for (const yearbook of fetchedYearbooks) {
-  const existingYearbook = await Yearbook.findOne({ id: yearbook.id });
-
-  if (!existingYearbook) {
-    // If the yearbook doesn't exist in the database, create it
-    await Yearbook.create({
-      id: yearbook.id,
-      title: yearbook.title,
-      status: 'pending',
-      thumbnail: yearbook.thumbnail,
-    });
-  }
-}
-
-};
 
 app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`);
