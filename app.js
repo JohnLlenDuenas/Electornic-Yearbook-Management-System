@@ -19,6 +19,13 @@ const csvParser = require('csv-parser');
 const mysql = require('mysql2/promise');
 const fs = require('fs');
 const sharp = require('sharp');
+const cors = require('cors');
+
+const corsOptions = {
+  origin: 'https://electornic-yearbook-management-system.vercel.app/', // Replace with your front-end domain
+  methods: ['POST','GET'], // Allow only POST requests
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+};
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -618,7 +625,7 @@ app.post('/verify-2fa', async (req, res) => {
   }
 });
 
-app.post('/loginroute', async (req, res) => {
+app.post('/loginroute', cors(corsOptions), async (req, res) => {
   const { studentNumber, password, token } = req.body;
 
   try {
