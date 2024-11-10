@@ -1113,7 +1113,7 @@ const WORDPRESS_USERNAME = 'root';
 const WORDPRESS_APPLICATION_PASSWORD = 'CPm7 FA4m G1L5 XOd1 1mdT Aysr';
 
 
-cron.schedule('*/1 * 0-1 * * *', cors(corsOptions), async () => {
+cron.schedule('*/1 * 0-1 * * *', async () => {
   try {
     const acceptedConsentForms = await ConsentForm.find({ form_Status: 'Accepted' });
 
