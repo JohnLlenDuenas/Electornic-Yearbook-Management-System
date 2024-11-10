@@ -20,6 +20,17 @@ const mysql = require('mysql2/promise');
 const fs = require('fs');
 const sharp = require('sharp');
 const cors = require('cors');
+const http = require('http');
+const app = express();
+const socketIo = require('socket.io');
+const lastLogTimestamp = new Date();
+const speakeasy = require('speakeasy');
+const QRCode = require('qrcode');
+
+const server = http.createServer(app);
+const io = require('socket.io')(server);
+
+const port = 3000;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -42,17 +53,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-const http = require('http');
-const app = express();
-const socketIo = require('socket.io');
-const lastLogTimestamp = new Date();
-const speakeasy = require('speakeasy');
-const QRCode = require('qrcode');
 
-const server = http.createServer(app);
-const io = require('socket.io')(server);
-
-const port = 3000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
