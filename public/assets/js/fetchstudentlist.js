@@ -23,11 +23,20 @@ function displayStudents(students) {
           <p><strong>Student Number:</strong> ${student.studentNumber}</p>
           <p><strong>Email:</strong> ${student.email}</p>
           <button class="button button-a button-rouded" onclick="resetPassword('${student._id}')">Reset Password</button>
+          ${student.consentfilled ? `<button class="button button-a button-rouded" onclick="viewConsent('${student.studentNumber}')">View Consent</button>` : ''}
         </div>
       `).join('')}
     </div>
   `;
 }
+
+
+
+function viewConsent(studentNumber) {
+  window.location.href = `/consents/${studentNumber}`;
+}
+
+
 
 async function resetPassword(studentId) {
   if (confirm('Are you sure you want to reset the password for this student?')) {
@@ -50,4 +59,3 @@ async function resetPassword(studentId) {
     }
   }
 }
-

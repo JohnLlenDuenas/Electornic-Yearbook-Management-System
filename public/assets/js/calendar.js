@@ -1,75 +1,78 @@
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
 
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    let currentDate = new Date();
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
+function renderCalendar() {
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const previousDays = new Date(currentYear, currentMonth, 0).getDate();
 
-    const monthYearDisplay = document.getElementById('monthYear');
-    const dateCells = document.getElementById('dateCells');
-    const prevMonthButton = document.getElementById('prevMonth');
-    const nextMonthButton = document.getElementById('nextMonth');
+  // Clear existing calendar cells
+  const dateCells = document.getElementById('dateCells');
+  dateCells.innerHTML = '';
 
-    // Function to render the calendar
-    function renderCalendar() {
-        dateCells.innerHTML = ''; // Clear previous dates
-        const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-        const lastDateOfMonth = new Date(currentYear, currentMonth + 1, 0);
-        const lastDayOfPreviousMonth = new Date(currentYear, currentMonth, 0);
-        
-        const firstDayOfWeek = firstDayOfMonth.getDay();
-        const lastDate = lastDateOfMonth.getDate();
-        const totalDays = firstDayOfWeek + lastDate;
+  // Set month and year title
+  document.getElementById('monthYear').textContent = `${monthNames[currentMonth]} ${currentYear}`;
 
-        // Display month and year
-        monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+  // Add previous month's days in gray
+  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+    const cell = document.createElement('div');
+    cell.textContent = previousDays - i;
+    cell.style.color = '#ccc';
+    dateCells.appendChild(cell);
+  }
 
-        // Add previous month's overflow days
-        for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-            const prevMonthDate = new Date(currentYear, currentMonth - 1, lastDayOfPreviousMonth.getDate() - i);
-            const day = prevMonthDate.getDate();
-            const div = document.createElement('div');
-            div.textContent = day;
-            div.style.color = '#ccc';
-            dateCells.appendChild(div);
-        }
+  // Add current month’s days with consent deadlines highlighted
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cell = document.createElement('div');
+    cell.textContent = day;
 
-        // Add the current month's dates
-        for (let day = 1; day <= lastDate; day++) {
-            const div = document.createElement('div');
-            div.textContent = day;
-            div.onclick = () => alert(`You clicked on ${day} ${monthNames[currentMonth]} ${currentYear}`);
-            dateCells.appendChild(div);
-        }
+    // Check if this day is a consent deadline
+    const deadline = consentDeadlines.find(d => {
+      const consentDate = new Date(d.consentDeadline);
+      return consentDate.getDate() === day && consentDate.getMonth() === currentMonth && consentDate.getFullYear() === currentYear;
+    });
 
-        // Add next month's overflow days (if needed)
-        const remainingCells = 42 - totalDays;
-        for (let i = 0; i < remainingCells; i++) {
-            const nextMonthDate = new Date(currentYear, currentMonth + 1, i + 1);
-            const div = document.createElement('div');
-            div.textContent = nextMonthDate.getDate();
-            div.style.color = '#ccc';
-            dateCells.appendChild(div);
-        }
+    if (deadline) {
+      cell.style.backgroundColor = '#FFDDC1'; // Highlight deadline date
+      cell.title = `Yearbook: ${deadline.title} Consent Deadline`;
     }
 
-    // Event listeners for the buttons
-    prevMonthButton.addEventListener('click', () => {
-        currentMonth--;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear--;
-        }
-        renderCalendar();
-    });
+    dateCells.appendChild(cell);
+  }
 
-    nextMonthButton.addEventListener('click', () => {
-        currentMonth++;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear++;
-        }
-        renderCalendar();
-    });
+  // Add next month's days in gray if the calendar grid is incomplete
+  const totalCells = firstDayOfMonth + daysInMonth;
+  const remainingCells = 42 - totalCells;
+  for (let i = 1; i <= remainingCells; i++) {
+    const cell = document.createElement('div');
+    cell.textContent = i;
+    cell.style.color = '#ccc';
+    dateCells.appendChild(cell);
+  }
+}
 
-    // Initial rendering of the calendar
-    renderCalendar();
+// Event listeners for navigating months
+document.getElementById('prevMonth').onclick = () => {
+  if (currentMonth === 0) {
+    currentMonth = 11;
+    currentYear--;
+  } else {
+    currentMonth--;
+  }
+  renderCalendar();
+};
+
+document.getElementById('nextMonth').onclick = () => {
+  if (currentMonth === 11) {
+    currentMonth = 0;
+    currentYear++;
+  } else {
+    currentMonth++;
+  }
+  renderCalendar();
+};
+
+// Initial render
+renderCalendar();
+

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Consent Form  |  E - Yearbook Management System</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <link href="../assets/img/mlndy logo.png" rel="icon">
+  <link href="../assets/img/mlndy logo.png" rel="apple-touch-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-Rk4kgbc4eEkdaD6S6ZjPhxnU9HWyqeqeUQ+Rz/z6z3qmWTfaTlqmKAzzPXZ+6u2oUlVbMZIuSJtQ9nH19p0x2Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="../assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <link href="../assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link href="../assets/css/style.css" rel="stylesheet">
+  <script src="assets/js/auth.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+</head>
+
+<body style="overflow: hidden;">
+
+
+
+  <header id="header" class="fixed-top">
+
+    
+    <div class="container d-flex align-items-center justify-content-between">
+      <h1 class="logo"><img src="../assets/img/mlndy logo.png"><a href="../index.html" style="font-size: 75%;">     MALANDAY NATIONAL HIGHSCHOOL E-YEARBOOK</a></h1>
+    </div>
+    
+  </header>
+
+
+  <div id="hero" class="hero route bg-image " style="background-image: url(../assets/img/hero-bg.jpg)" >
+    <div class="overlay-itro"></div>
+    <div class="hero-content display-table">
+      <div class="table-cell">
+        <div class="container">
+          <section id="about" class="about-mf sect-pt4 route" >
+            <div class="container">
+              <div class="row">
+                <div class="col-sm-12 " style="margin-top: 2%; ">
+                  <div class="box-shadow-full margs scrollable-container " >
+                    <h2 >
+                      Parent/Guardian Consent Form for Online Yearbook and Social Media Sharing<br><br>
+                    </h2>
+                    <div>
+                      <h1 class="lead" style="direction: ltr !important;text-align: left !important;">
+                        <strong>Dear Parent/Guardian,</strong>
+                        <br><br>ㅤWe are excited to announce the development of our new Online Yearbook Management System for Malanday National High School. This innovative platform will not only serve as a digital keepsake for our students but also enhance their ability to share memorable moments through various social media channels.
+                        <br><br>ㅤAs part of this project, we intend to include student photographs and other related content on our school’s website and social media pages. To comply with data privacy regulations, specifically the <strong>Data Privacy Act of 2012 (Republic Act No. 10173) of the Philippines,</strong> and to ensure we have your permission, we request that you carefully read and sign the following waiver.
+                        <br>
+                        <br><strong>Consent Agreement</strong><br>
+                        <br>ㅤI, the undersigned, am the parent/legal guardian of the student named below. I understand that as part of the Online Yearbook Management System, my child’s photograph and related content may be displayed on the school’s official website and shared across various social media platforms.
+                        <br><br><strong>By signing this form, I acknowledge and agree to the following:</strong>
+                        <br><br><strong>Permission to Use Photographs:</strong> I grant Malanday National High School permission to use my child’s photograph in the online yearbook, school website, and associated social media accounts for educational and promotional purposes.
+                        <br><br><strong>Social Media Sharing:</strong> I understand that my child will be able to share yearbook content, including their photographs, via social media platforms as part of the yearbook’s features.
+                        <br><br><strong>Data Privacy:</strong> I have been informed about potential data privacy issues related to the online publication and sharing of student photographs. I acknowledge that while the school will take appropriate measures to protect my child’s privacy, it cannot guarantee absolute security against unauthorized access. This consent is given in compliance with the Data Privacy Act of 2012 (Republic Act No. 10173) of the Philippines.
+                        <br><br><strong>Revocation of Consent:</strong> I understand that I may revoke this consent at any time by providing written notice to the school. However, I acknowledge that content already published cannot be retracted.
+                        <br><br><strong>Release of Liability:</strong> I release Malanday National High School and its representatives from any liability that may arise from the use of my child’s photographs as described in this consent form.
+                        <br><br>Thank you for your cooperation and support in enhancing our school’s yearbook experience.
+                        <br><br>
+                        <div id="consent-forms-container">
+                          <div class="grid" id >
+                            <div >
+                              <h1 class="lead"><strong>Student Information</strong></h1>
+                              <div class="row" style="padding: 5%;">
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <p >Student Name: <%= consentForm.student_Name%></p>
+                                  </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <p >Student Number: <%= consentForm.student_Number%></p>
+                                  </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <p >Grade Section: <%= consentForm.gradeSection%></p>
+                                  </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <p >Form Status: <%= consentForm.form_Status%></p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <h1 class="lead"><strong>Parent/Guardian Information</strong></h1>
+                              <div class="row" style="padding: 5%;">
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <p  >Parent/Guardian Name: <%= consentForm.parentGuardian_Name%></p>
+                                  </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <p >Relationship: <%= consentForm.relationship%></p>
+                                  </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <p >Contact No:<%= consentForm.contactNo%></p>
+                                  </div>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                  <div class="form-group">
+                                    <p>Date and Time Filled:<%= consentForm.date_and_Time_Filled%></p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </h1>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../authjs"></script>
+<script>
+</script>
+
+  <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="../assets/vendor/php-email-form/validate.js"></script>
+  <script src="../assets/vendor/purecounter/purecounter.js"></script>
+  <script src="../assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="../assets/vendor/typed.js/typed.min.js"></script>
+
+  <script src="../assets/js/main.js"></script>
+
+</body>
+
+</html>

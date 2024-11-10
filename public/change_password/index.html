@@ -96,7 +96,7 @@
             $('#message').text(response.message).css('color', 'green');
             // Redirect to the consent page after successful password change
             setTimeout(() => {
-              window.location.href = '../consent/index.html';
+              window.location.href = '/student/yearbooks';
             }, 2000); // Redirect after 2 seconds to show the success message
           },
           error: function(xhr) {
