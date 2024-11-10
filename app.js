@@ -707,7 +707,7 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
   }
 });
 
-app.post('/logout', (req, res) => {
+app.post('/logout', cors(corsOptions), (req, res) => {
   
   req.session.destroy((err) => {
     if (err) {
@@ -718,7 +718,7 @@ app.post('/logout', (req, res) => {
   
 });
 
-app.get('/consentformfetch', checkAuthenticated, ensureRole(['admin', 'committee']), async (req, res) => {
+app.get('/consentformfetch', cors(corsOptions), checkAuthenticated, ensureRole(['admin', 'committee']), async (req, res) => {
   try {
     const consentForms = await ConsentForm.find();
     await logActivity(req.session.user ? req.session.user._id : null, 'Fetch consent form data');
@@ -729,7 +729,7 @@ app.get('/consentformfetch', checkAuthenticated, ensureRole(['admin', 'committee
   }
 });
 
-app.get('/students', checkAuthenticated, ensureRole(['admin' , 'committee']), async (req, res) => {
+app.get('/students', cors(corsOptions), checkAuthenticated, ensureRole(['admin' , 'committee']), async (req, res) => {
   try {
     const students = await Student.find({ accountType: 'student' });
     res.json(students);
@@ -738,7 +738,7 @@ app.get('/students', checkAuthenticated, ensureRole(['admin' , 'committee']), as
   }
   
 });
-app.get('/comittee', checkAuthenticated, ensureRole(['admin','committee']), async (req, res) => {
+app.get('/comittee', cors(corsOptions), checkAuthenticated, ensureRole(['admin','committee']), async (req, res) => {
   try {
     const comittee = await Student.find({ accountType: 'committee' });
     res.json(comittee);
@@ -747,7 +747,7 @@ app.get('/comittee', checkAuthenticated, ensureRole(['admin','committee']), asyn
   }
 });
 
-app.get('/admin/yearbooks', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     yearbooks();
     const onlineUsers = await countOnlineUsers();
@@ -806,7 +806,7 @@ app.get('/admin/yearbooks', checkAuthenticated, ensureRole(['admin']), async (re
 });
 
 
-app.get('/yearbook/:id', async (req, res) => {
+app.get('/yearbook/:id', cors(corsOptions), async (req, res) => {
   try {
     const yearbookId = req.params.id;
     const url = `https://eybms.infinityfreeapp.com/wordpress/3d-flip-book/${yearbookId}/`;
@@ -855,7 +855,7 @@ cron.schedule('0 0 * * *', async () => {
   }
 });
 
-app.post('/yearbook/:id/publish', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+app.post('/yearbook/:id/publish', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     const yearbookId = req.params.id;
 
@@ -870,7 +870,7 @@ app.post('/yearbook/:id/publish', checkAuthenticated, ensureRole(['admin']), asy
   }
 });
 
-app.post('/yearbook/:id/pending', checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+app.post('/yearbook/:id/pending', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     const yearbookId = req.params.id;
     await Yearbook.findOneAndUpdate({ id: yearbookId }, { status: 'pending' });
@@ -883,7 +883,7 @@ app.post('/yearbook/:id/pending', checkAuthenticated, ensureRole(['admin']), asy
   }
 });
 
-app.get('/comittee/yearbooks', checkAuthenticated, ensureRole(['committee']), async (req, res) => {
+app.get('/comittee/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['committee']), async (req, res) => {
   try {
 
     yearbooks();
@@ -929,7 +929,7 @@ app.get('/comittee/yearbooks', checkAuthenticated, ensureRole(['committee']), as
   }
 });
 
-app.get('/comitteeyearbook/:id', checkAuthenticated, ensureRole(['committee']), async (req, res) => {
+app.get('/comitteeyearbook/:id', cors(corsOptions), checkAuthenticated, ensureRole(['committee']), async (req, res) => {
   try {
     const yearbookId = req.params.id;
     const url = 'https://eybms.infinityfreeapp.com/wordpress/wp-admin/edit.php?post_type=3d-flip-book';
@@ -982,12 +982,12 @@ app.get('/comitteeyearbook/:id', checkAuthenticated, ensureRole(['committee']), 
   }
 });
 
-app.get('/consent/students', checkAuthenticated, ensureRole(['student']), async (req, res) => {
+app.get('/consent/students', cors(corsOptions), checkAuthenticated, ensureRole(['student']), async (req, res) => {
   const studentNumber = req.session.user.studentNumber; 
   res.render(path.join(__dirname, 'public', 'consent', 'index'), { studentNumber });
 });
 
-app.get('/consents/:studentNumber', async (req, res) => {
+app.get('/consents/:studentNumber', cors(corsOptions), async (req, res) => {
   try {
     const consentForm = await ConsentForm.findOne({ student_Number: req.params.studentNumber });
     
@@ -1002,7 +1002,7 @@ app.get('/consents/:studentNumber', async (req, res) => {
   }
 });
 
-app.get('/consent/:studentNumber', async (req, res) => {
+app.get('/consent/:studentNumber', cors(corsOptions), async (req, res) => {
   try {
     const consentForm = await ConsentForm.findOne({ student_Number: req.params.studentNumber });
     if (consentForm) {
@@ -1015,7 +1015,7 @@ app.get('/consent/:studentNumber', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-app.get('/student/yearbooks', checkAuthenticated, ensureRole(['student']), async (req, res) => {
+app.get('/student/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['student']), async (req, res) => {
   try {
     const onlineUsers = await countOnlineUsers();
     const studentId = req.session.user._id;
@@ -1063,7 +1063,7 @@ app.get('/student/yearbooks', checkAuthenticated, ensureRole(['student']), async
   }
 });
 
-app.get('/student/get-picture', checkAuthenticated, ensureRole(['student']), async (req, res) => {
+app.get('/student/get-picture', cors(corsOptions), checkAuthenticated, ensureRole(['student']), async (req, res) => {
   try {
     const studentId = req.session.user._id;
     const student = await Student.findById(studentId);
@@ -1113,7 +1113,7 @@ const WORDPRESS_USERNAME = 'root';
 const WORDPRESS_APPLICATION_PASSWORD = 'CPm7 FA4m G1L5 XOd1 1mdT Aysr';
 
 
-cron.schedule('*/1 * 0-1 * * *', async () => {
+cron.schedule('*/1 * 0-1 * * *', cors(corsOptions), async () => {
   try {
     const acceptedConsentForms = await ConsentForm.find({ form_Status: 'Accepted' });
 
@@ -1185,7 +1185,7 @@ cron.schedule('*/1 * 0-1 * * *', async () => {
 });
 
 
-app.post('/submit-consent', async (req, res) => {
+app.post('/submit-consent', cors(corsOptions), async (req, res) => {
   const { studentNumber, consentStatus } = req.body;
 
   try {
@@ -1216,7 +1216,7 @@ app.post('/submit-consent', async (req, res) => {
   }
 });
 
-app.post('/set-deadline', async (req, res) => {
+app.post('/set-deadline', cors(corsOptions), async (req, res) => {
   const { yearbookId, deadline } = req.body;
   try {
     const updatedYearbook = await Yearbook.findByIdAndUpdate(
