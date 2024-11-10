@@ -24,7 +24,7 @@ const cors = require('cors');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const corsOptions = {
-  origin: 'https://eybms.infinityfreeapp.com/wordpress/', // Replace with your front-end domain
+  origin: 'https://electornic-yearbook-management-system.vercel.app/', // Replace with your front-end domain
   methods: ['POST','GET'], // Allow only POST requests
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
 };
@@ -1258,13 +1258,13 @@ async function yearbooks() {
 
   const existingYearbooks = await Yearbook.find({});
 
- //const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
+ const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
 
-  /*for (const existingYearbook of existingYearbooks) {
+  for (const existingYearbook of existingYearbooks) {
     if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
       await Yearbook.deleteOne({ id: existingYearbook.id });
     }
-  }*/
+  }
 
   for (const yearbook of fetchedYearbooks) {
     const existing = await Yearbook.findOne({ id: yearbook.id });
