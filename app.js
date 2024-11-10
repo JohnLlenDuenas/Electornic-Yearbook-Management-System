@@ -22,7 +22,7 @@ const sharp = require('sharp');
 const cors = require('cors');
 
 const corsOptions = {
-  origin: 'https://electornic-yearbook-management-system.vercel.app/', // Replace with your front-end domain
+  origin: 'https://eybms.infinityfreeapp.com/wordpress/', // Replace with your front-end domain
   methods: ['POST','GET'], // Allow only POST requests
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
 };
