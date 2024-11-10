@@ -1253,48 +1253,36 @@ fetchFlipbooks().then(flipbooks => {
 
 
 async function yearbooks() {
-  try {
-    const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks');
-    const fetchedYearbooks = response.data;
+  const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks',cors(corsOptions));
+  const fetchedYearbooks = response.data;
 
-    // Log response to understand the structure of fetchedYearbooks
-    console.log('Fetched Yearbooks:', fetchedYearbooks);
+  const existingYearbooks = await Yearbook.find({});
 
-    // Check if fetchedYearbooks is an array
-    if (!Array.isArray(fetchedYearbooks)) {
-      throw new Error('Fetched yearbooks data is not an array');
+  const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
+
+  for (const existingYearbook of existingYearbooks) {
+    if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
+      await Yearbook.deleteOne({ id: existingYearbook.id });
     }
+  }
 
-    const existingYearbooks = await Yearbook.find({});
-    const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
+  for (const yearbook of fetchedYearbooks) {
+    const existing = await Yearbook.findOne({ id: yearbook.id });
 
-    for (const existingYearbook of existingYearbooks) {
-      if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
-        await Yearbook.deleteOne({ id: existingYearbook.id });
-      }
+    const result = await Yearbook.updateOne(
+      { id: yearbook.id },
+      {
+        title: yearbook.title,
+        thumbnail: yearbook.thumbnail,
+      },
+      { upsert: true } 
+    );
+
+    if (!existing) {
+      await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
     }
-
-    for (const yearbook of fetchedYearbooks) {
-      const existing = await Yearbook.findOne({ id: yearbook.id });
-
-      await Yearbook.updateOne(
-        { id: yearbook.id },
-        {
-          title: yearbook.title,
-          thumbnail: yearbook.thumbnail,
-        },
-        { upsert: true }
-      );
-
-      if (!existing) {
-        await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
-      }
-    }
-  } catch (error) {
-    console.error('Error in yearbooks function:', error.message);
   }
 }
-
 
 app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`);
