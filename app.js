@@ -749,7 +749,7 @@ app.get('/comittee', cors(corsOptions), checkAuthenticated, ensureRole(['admin',
 
 app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
-    //yearbooks();
+    yearbooks();
     const onlineUsers = await countOnlineUsers();
     const user = await Student.findById(req.session.user);
     const yearbook = await Yearbook.find();
@@ -1253,12 +1253,12 @@ fetchFlipbooks().then(flipbooks => {
 
 
 async function yearbooks() {
-  const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks',cors(corsOptions));
+  /*const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks',cors(corsOptions));
   const fetchedYearbooks = response.data;
 
   const existingYearbooks = await Yearbook.find({});
 
-  const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
+ const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
 
   for (const existingYearbook of existingYearbooks) {
     if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
@@ -1281,7 +1281,7 @@ async function yearbooks() {
     if (!existing) {
       await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
     }
-  }
+  }*/
 }
 
 app.listen(port, () => {
