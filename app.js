@@ -24,7 +24,7 @@ const cors = require('cors');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const corsOptions = {
-  origin: 'https://electornic-yearbook-management-system.vercel.app/', // Replace with your front-end domain
+  origin: '*', // Replace with your front-end domain
   methods: ['GET','POST'], // Allow only POST requests
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
 };
