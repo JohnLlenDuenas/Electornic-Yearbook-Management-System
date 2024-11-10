@@ -21,6 +21,8 @@ const fs = require('fs');
 const sharp = require('sharp');
 const cors = require('cors');
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const corsOptions = {
   origin: 'https://eybms.infinityfreeapp.com/wordpress/', // Replace with your front-end domain
   methods: ['POST','GET'], // Allow only POST requests
