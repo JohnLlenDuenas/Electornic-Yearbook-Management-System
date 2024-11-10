@@ -749,7 +749,7 @@ app.get('/comittee', cors(corsOptions), checkAuthenticated, ensureRole(['admin',
 
 app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
-    yearbooks();
+    //yearbooks();
     const onlineUsers = await countOnlineUsers();
     const user = await Student.findById(req.session.user);
     const yearbook = await Yearbook.find();
