@@ -223,7 +223,7 @@ app.get('/check-auth', (req, res) => {
   }
 });
 
-app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
+app.use('/admin', checkAuthenticated, ensureRole(['admin']), express.static(path.join(__dirname, 'public', 'admin')));
 app.use('/student', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'student')));
 app.use('/committee', checkAuthenticated, ensureRole(['committee']), express.static(path.join(__dirname, 'public', 'committee')));
 app.use('/consent', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'consent')));
@@ -630,7 +630,7 @@ app.post('/verify-2fa', async (req, res) => {
   }
 });
 
-app.post('/loginroute', cors(corsOptions), async (req, res) => {
+app.post('/loginroute', async (req, res) => {
   const { studentNumber, password, token } = req.body;
 
   try {
