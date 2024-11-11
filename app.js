@@ -1254,8 +1254,46 @@ fetchFlipbooks().then(flipbooks => {
   console.log(flipbooks);
 });
 
-async function fetchYearbooks() {
-  // Launch Puppeteer with additional options to support headless environments
+
+async function yearbooks() {
+  const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks', cors(corsOptions));
+  const fetchedYearbooks = response.data;
+
+  // Check if fetchedYearbooks is an array
+  if (!Array.isArray(fetchedYearbooks)) {
+    console.error("Error: fetchedYearbooks is not an array", fetchedYearbooks);
+    return;
+  }
+
+  const existingYearbooks = await Yearbook.find({});
+  const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
+
+  for (const existingYearbook of existingYearbooks) {
+    if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
+      await Yearbook.deleteOne({ id: existingYearbook.id });
+    }
+  }
+
+  for (const yearbook of fetchedYearbooks) {
+    const existing = await Yearbook.findOne({ id: yearbook.id });
+
+    await Yearbook.updateOne(
+      { id: yearbook.id },
+      {
+        title: yearbook.title,
+        thumbnail: yearbook.thumbnail,
+      },
+      { upsert: true } 
+    );
+
+    if (!existing) {
+      await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
+    }
+  }
+}
+
+
+/*async function fetchYearbooks() {
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -1263,7 +1301,6 @@ async function fetchYearbooks() {
   const page = await browser.newPage();
   await page.goto('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks');
   
-  // Wait for the JSON response by capturing the page's content
   const data = await page.evaluate(() => document.body.innerText);
   await browser.close();
   
@@ -1308,7 +1345,7 @@ async function yearbooks() {
   } catch (error) {
     console.error('Error fetching yearbooks:', error);
   }
-}
+}*/
 
 /*async function yearbooks() {
   const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks', cors(corsOptions));
