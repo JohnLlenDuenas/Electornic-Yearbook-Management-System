@@ -223,7 +223,7 @@ app.get('/check-auth', (req, res) => {
   }
 });
 
-app.use('/admin', checkAuthenticated, ensureRole(['admin']), express.static(path.join(__dirname, 'public', 'admin')));
+app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
 app.use('/student', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'student')));
 app.use('/committee', checkAuthenticated, ensureRole(['committee']), express.static(path.join(__dirname, 'public', 'committee')));
 app.use('/consent', checkAuthenticated, ensureRole(['student']), express.static(path.join(__dirname, 'public', 'consent')));
@@ -750,7 +750,7 @@ app.get('/comittee', cors(corsOptions), checkAuthenticated, ensureRole(['admin',
   }
 });
 
-app.get('/admin/yearbooks', cors(corsOptions), async (req, res) => {
+app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     yearbooks();
     const onlineUsers = await countOnlineUsers();
