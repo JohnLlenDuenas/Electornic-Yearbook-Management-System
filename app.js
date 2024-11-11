@@ -753,7 +753,79 @@ app.get('/comittee', cors(corsOptions), checkAuthenticated, ensureRole(['admin',
   }
 });
 
-app.get('/admin/yearbooks', cors(corsOptions), async (req, res) => {
+app.get('/test', cors(corsOptions), async (req, res) => {
+  try {
+    yearbooks();
+    const onlineUsers = await countOnlineUsers();
+    const user = {
+      _id: new ObjectId('669a0623e049a5dbcf958128'),
+      studentNumber: '0',
+      email: 'johnllencruz03@gmail.com',
+      password: '043c98b8cae80158a630fc5f018caae5',
+      accountType: 'admin',
+      iv: '7b733023e99c1080cf6f81448ae6eb41',
+      key: '5a4b108da566f39967a7371fe26abc4eb65c7ff4d2405e8284801d987016f325',
+      consentfilled: false,
+      __v: 0,
+      passwordChanged: false,
+      twoFactorEnabled: false,
+      twoFactorSecret: 'H4YTESZWGQ7VCSK6NNVWW6JXNVVSSNTB',
+      lastActive: '2024-11-11T05:45:56.999Z',
+      pictureUploaded: false
+    };
+    const yearbook = await Yearbook.find();
+    const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
+      .sort({ views: -1 })
+      .limit(3);
+    const publishedYearbooks = await Yearbook.find({ status: 'published' });
+    const pendingYearbooks = await Yearbook.find({ status: 'pending' });
+    const calendar = await Yearbook.find({ consentDeadline: { $exists: true } });
+
+    const userId = '669a0623e049a5dbcf958128'; 
+    const accountType = 'admin';
+
+    const allowedActions = [
+      'Logged in as committee',
+      'Logged in as admin',
+      'Yearbook Published',
+      'Yearbook Pending',
+      '2FA setup successful'
+    ];
+
+    let activityLogs = [];
+
+    if (accountType === 'admin' || accountType === 'committee') {
+      activityLogs = await ActivityLog.find({
+        viewedBy: { $ne: userId },
+        action: { $in: allowedActions }
+      }).sort({ timestamp: -1 }).limit(5);
+
+      await Promise.all(activityLogs.map(log => {
+        if (!log.viewedBy) {
+          log.viewedBy = [];
+        }
+        log.viewedBy.push(userId);
+        return log.save();
+      }));
+    }
+
+    res.render(path.join(__dirname, 'public', 'admin', 'index'), {
+      activityLogs,
+      publishedYearbooks,
+      pendingYearbooks,
+      onlineUsers,
+      mostViewedYearbooks,
+      user,
+      yearbook,
+      calendar
+    });
+
+  } catch (error) {
+    console.error('Error fetching yearbooks:', error);
+    res.status(500).json({ message: 'Error fetching yearbooks' });
+  }
+});
+app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
     yearbooks();
     const onlineUsers = await countOnlineUsers();
