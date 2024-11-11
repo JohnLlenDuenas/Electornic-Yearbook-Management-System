@@ -89,7 +89,7 @@ app.use(express.json());
 app.use(session({
   secret: '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   store: MongoStore.create({ mongoUrl: 'mongodb+srv://johnllentv:johnllentv@cluster0.pgaelxg.mongodb.net/EYBMS_DB' }),
   rolling: true,
   cookie: {
@@ -685,6 +685,8 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
       console.log("Session before setting user:", req.session);
       req.session.user = user.toObject();
       console.log("Session after setting user:", req.session);
+      
+      console.log("User successfully set in session:", req.session.user);
 
       if (user.accountType === 'student') {
         if (!user.passwordChanged) {
@@ -696,7 +698,9 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
         }
       } else if (user.accountType === 'admin') {
         await logActivity(user._id, 'Logged in as admin', `User ${user.studentNumber} logged in successfully`);
+        console.log("User successfully set in session:", req.session.user);
         return res.redirect('/admin/yearbooks');
+        
       } else if (user.accountType === 'committee') {
         await logActivity(user._id, 'Logged in as committee', `User ${user.studentNumber} logged in successfully`);
         return res.redirect('/committee/yearbooks');
@@ -828,11 +832,12 @@ app.get('/test', cors(corsOptions), async (req, res) => {
   }
 });
 app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+  console.log("Session in /admin/yearbooks:", req.session);
   try {
     console.log("Session in /admin/yearbooks:", req.session);
     yearbooks();
     const onlineUsers = await countOnlineUsers();
-    const user = await Student.findById(req.session.user);
+    const user = req.session.user;
     const yearbook = await Yearbook.find();
     const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
       .sort({ views: -1 })
