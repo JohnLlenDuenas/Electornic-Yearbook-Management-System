@@ -1255,7 +1255,11 @@ fetchFlipbooks().then(flipbooks => {
 });
 
 async function fetchYearbooks() {
-  const browser = await puppeteer.launch();
+  // Launch Puppeteer with additional options to support headless environments
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const page = await browser.newPage();
   await page.goto('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks');
   
@@ -1265,6 +1269,7 @@ async function fetchYearbooks() {
   
   return JSON.parse(data);
 }
+
 async function yearbooks() {
   try {
     const fetchedYearbooks = await fetchYearbooks();

@@ -30,7 +30,6 @@
     "qrcode": "^1.5.4",
     "sharp": "^0.33.5",
     "socket.io": "^4.7.5",
-    "speakeasy": "^2.0.0",
-    "puppeteer": "^23.7.1"
+    "speakeasy": "^2.0.0"
   }
 }
