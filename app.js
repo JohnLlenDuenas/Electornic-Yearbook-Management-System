@@ -641,6 +641,14 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
 
   try {
     console.log("Starting login process at:", new Date());
+    try {
+      console.log("Testing MongoDB connectivity...");
+      await mongoose.connection.db.admin().ping();
+      console.log("MongoDB connection successful");
+    } catch (error) {
+      console.error("MongoDB connection failed:", error);
+      return res.send('<script>alert("Database connection error."); window.history.back();</script>');
+    }
     const user = await Student.findOne({ studentNumber }).maxTimeMS(5000); // Timeout of 5 seconds
     console.log("User lookup complete at:", new Date(), "User found:", user ? user._id : "No user found");
 
@@ -716,6 +724,9 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
 
 
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ message: "Server is running" });
+});
 
 
 app.post('/logout', cors(corsOptions), (req, res) => {
