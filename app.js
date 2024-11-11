@@ -750,7 +750,7 @@ app.get('/comittee', cors(corsOptions), checkAuthenticated, ensureRole(['admin',
   }
 });
 
-app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
+app.get('/admin/yearbooks', cors(corsOptions), async (req, res) => {
   try {
     yearbooks();
     const onlineUsers = await countOnlineUsers();
