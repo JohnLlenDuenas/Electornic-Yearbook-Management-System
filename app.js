@@ -812,7 +812,7 @@ app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['
 app.get('/yearbook/:id', cors(corsOptions), async (req, res) => {
   try {
     const yearbookId = req.params.id;
-    const url = `https://eybms.infinityfreeapp.com/wordpress/3d-flip-book/${yearbookId}/`;
+    const url = `https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/3d-flip-book/${yearbookId}/`;
     
     const yearbook = await Yearbook.findOne({ id: yearbookId });
     if (!yearbook) {
@@ -935,7 +935,7 @@ app.get('/comittee/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole
 app.get('/comitteeyearbook/:id', cors(corsOptions), checkAuthenticated, ensureRole(['committee']), async (req, res) => {
   try {
     const yearbookId = req.params.id;
-    const url = 'https://eybms.infinityfreeapp.com/wordpress/wp-admin/edit.php?post_type=3d-flip-book';
+    const url = 'https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/wp-admin/edit.php?post_type=3d-flip-book';
     
     const yearbook = await Yearbook.findOne({ id: yearbookId });
     if (!yearbook) {
@@ -1027,7 +1027,7 @@ app.get('/student/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(
     const yearbook = await Yearbook.find();
     const calendar = await Yearbook.find({ consentDeadline: { $exists: true } });
     const stuNum = student.studentNumber;
-    const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks');
+    const response = await axios.get('https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks');
     const yearbooks = response.data;
 
     for (const yearbook of yearbooks) {
@@ -1085,7 +1085,7 @@ app.get('/student/get-picture', cors(corsOptions), checkAuthenticated, ensureRol
 app.get('/studentyearbook/:id', async (req, res) => {
   try {
     const yearbookId = req.params.id;
-    const url = `https://eybms.infinityfreeapp.com/wordpress/3d-flip-book/${yearbookId}/`;
+    const url = `https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/3d-flip-book/${yearbookId}/`;
     
     const response = await axios.get(url);
     const html = response.data;
@@ -1111,7 +1111,7 @@ const connection  = mysql.createPool({
   database: 'yearbook_db',
 });
 
-const WORDPRESS_URL = 'https://eybms.infinityfreeapp.com/wordpress/wp-json/wp/v2/media';
+const WORDPRESS_URL = 'https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/wp-json/wp/v2/media';
 const WORDPRESS_USERNAME = 'root';
 const WORDPRESS_APPLICATION_PASSWORD = 'CPm7 FA4m G1L5 XOd1 1mdT Aysr';
 
@@ -1240,7 +1240,7 @@ app.post('/set-deadline', cors(corsOptions), async (req, res) => {
 
 async function fetchFlipbooks() {
   try {
-    const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks', {
+    const response = await axios.get('https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks', {
       withCredentials: true,
     });
     return response.data;
@@ -1326,7 +1326,7 @@ async function yearbooks() {
 /*async function yearbooks() {
   try {
     const response = await axios.get(
-      'https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks', 
+      'https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks', 
       cors(corsOptions)
     );
 
