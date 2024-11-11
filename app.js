@@ -35,7 +35,7 @@ const port = 3000;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const corsOptions = {
-  origin: '*', // Replace with your front-end domain
+  origin: 'https://eybms.infinityfreeapp.com/wordpress', // Replace with your front-end domain
   methods: ['GET','POST'], // Allow only POST requests
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
 };
