@@ -67,7 +67,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
-const uri = "mongodb+srv://johnllentv:johnllentv@cluster0.pgaelxg.mongodb.net/EYBMS_DB?retryWrites=true&w=majority";
+const uri = "mongodb+srv://vercel-admin-user:7U61tFTX0WPtinIJ@cluster0.pgaelxg.mongodb.net/EYBMS_DB?retryWrites=true&w=majorityy";
 
 mongoose.connect(uri, {
   useNewUrlParser: true,
@@ -95,7 +95,7 @@ app.use(session({
   secret: '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b',
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: 'mongodb+srv://johnllentv:johnllentv@cluster0.pgaelxg.mongodb.net/EYBMS_DB' }),
+  store: MongoStore.create({ mongoUrl: 'mongodb+srv://vercel-admin-user:7U61tFTX0WPtinIJ@cluster0.pgaelxg.mongodb.net/EYBMS_DB?retryWrites=true&w=majorityy' }),
   rolling: true,
   cookie: {
     maxAge: 15 * 60 * 1000,
