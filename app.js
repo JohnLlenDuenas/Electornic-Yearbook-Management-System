@@ -699,6 +699,7 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
       } else if (user.accountType === 'admin') {
         await logActivity(user._id, 'Logged in as admin', `User ${user.studentNumber} logged in successfully`);
         console.log("User successfully set in session:", req.session.user);
+
         return res.redirect('/admin/yearbooks');
         
       } else if (user.accountType === 'committee') {
@@ -834,10 +835,9 @@ app.get('/test', cors(corsOptions), async (req, res) => {
 app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   console.log("Session in /admin/yearbooks:", req.session);
   try {
-    console.log("Session in /admin/yearbooks:", req.session);
     yearbooks();
     const onlineUsers = await countOnlineUsers();
-    //const user = req.session.user;
+    const user = req.session.user;
     const yearbook = await Yearbook.find();
     const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
       .sort({ views: -1 })
@@ -846,7 +846,7 @@ app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['
     const pendingYearbooks = await Yearbook.find({ status: 'pending' });
     const calendar = await Yearbook.find({ consentDeadline: { $exists: true } });
 
-    /*const userId = req.session.user._id; 
+    const userId = req.session.user._id; 
     const accountType = req.session.user.accountType;
 
     const allowedActions = [
@@ -872,7 +872,7 @@ app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['
         log.viewedBy.push(userId);
         return log.save();
       }));
-    }*/
+    }
 
     res.render(path.join(__dirname, 'public', 'admin', 'index'), {
       activityLogs,
@@ -895,8 +895,17 @@ app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['
 app.get('/yearbook/:id', cors(corsOptions), async (req, res) => {
   try {
     const yearbookId = req.params.id;
-    const url = `https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/3d-flip-book/${yearbookId}/`;
-    
+
+    const apiUrl = `https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/3d-flip-book/${yearbookId}/`;
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Origin': 'https://electornic-yearbook-management-system.vercel.app', // Frontend origin
+        'Content-Type': 'application/json'
+      }
+    });
+
     const yearbook = await Yearbook.findOne({ id: yearbookId });
     if (!yearbook) {
       return res.status(404).json({ message: 'Yearbook not found' });
@@ -904,15 +913,16 @@ app.get('/yearbook/:id', cors(corsOptions), async (req, res) => {
     yearbook.views += 1;
     yearbook.lastViewed = Date.now();
     await yearbook.save();
-    const response = await axios.get(url);
-    const html = response.data;
+
+    // Use .text() to get the HTML content
+    const html = await response.text();
 
     const $ = cheerio.load(html);
     const bodyContent = $('body').html();
 
     res.render('yearbook', { bodyContent });
 
-    await logActivity(yearbookId._id, 'Admin View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
+    await logActivity(req.session.user._id, 'Admin View Yearbook', `Yearbook ${yearbookId} viewed successfully`);
 
   } catch (error) {
     console.error('Error fetching yearbook content:', error);
