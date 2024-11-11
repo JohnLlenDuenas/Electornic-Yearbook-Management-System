@@ -682,7 +682,9 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
         }
       }
 
-      req.session.user = user;
+      console.log("Session before setting user:", req.session);
+      req.session.user = user.toObject();
+      console.log("Session after setting user:", req.session);
 
       if (user.accountType === 'student') {
         if (!user.passwordChanged) {
@@ -827,6 +829,7 @@ app.get('/test', cors(corsOptions), async (req, res) => {
 });
 app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['admin']), async (req, res) => {
   try {
+    console.log("Session in /admin/yearbooks:", req.session);
     yearbooks();
     const onlineUsers = await countOnlineUsers();
     const user = await Student.findById(req.session.user);
