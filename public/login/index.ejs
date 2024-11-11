@@ -40,27 +40,27 @@
                   <h5 class="title-left">Login</h5>
                 </div>
                 <div class="modal-body">
-                  <form id="loginForm">
+                  <form id="loginForm" action="/loginroute" method="POST">
                     <div class="col-md-12 mb-3">
                       <div class="form-group">
                         <label for="studentNumber"><h4>Student Number</h4></label>
-                        <input type="number" class="form-control" id="studentNumber" placeholder="Enter Student Number" required>
+                        <input type="number" class="form-control" id="studentNumber" name="studentNumber" placeholder="Enter Student Number" required>
                       </div>
                     </div>
                     <div class="col-md-12 mb-3">
                       <div class="form-group">
                         <label for="password"><h4>Password</h4></label>
-                        <input type="password" class="form-control" id="password" placeholder="Password" required>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
                       </div>
                     </div>
-
+                  
                     <div class="col-md-12 mb-3" id="tokenField" style="display:none;">
                       <div class="form-group">
                         <label for="token"><h4>2FA Token</h4></label>
                         <input type="text" class="form-control" id="token" name="token" placeholder="Enter 2FA token">
                       </div>
                     </div>
-
+                  
                     <div class="col-md-12 mb-3">
                       <div class="grid">
                         <div>
@@ -86,45 +86,19 @@
 
   <script>
     $(document).ready(function() {
-      $('#loginForm').submit(function(event) {
-        event.preventDefault();
-
-        var studentNumber = $('#studentNumber').val();
-        var password = $('#password').val();
-        var token = $('#token').val(); // Capture the 2FA token if provided
-
-        $.ajax({
-          type: 'POST',
-          url: '/loginroute',
-          data: JSON.stringify({
-            studentNumber: studentNumber,
-            password: password,
-            token: token // Send the 2FA token if available
-          }),
-          contentType: 'application/json',
-          success: function(response) {
-            if (response.message === 'Login successful') {
-              $('#loginMessage').html('<div class="alert alert-success">' + response.message + '</div>');
-              window.location.href = response.redirectUrl;
-            } else if (response.message === '2FA required') {
-              // Show the 2FA field when it's required
-              show2FAField();
-              $('#loginMessage').html('<div class="alert alert-info">Please enter your 2FA code</div>');
-            } else {
-              $('#loginMessage').html('<div class="alert alert-danger">' + response.message + '</div>');
-            }
-          },
-          error: function(xhr, status, error) {
-            $('#loginMessage').html('<div class="alert alert-danger">An error occurred: ' + xhr.responseText + '</div>');
-          }
-        });
-      });
+     
 
       // Function to show the 2FA field when it's required
       function show2FAField() {
         $('#tokenField').show();
       }
     });
+  </script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('2fa')) {
+      document.getElementById('tokenField').style.display = 'block';
+    }
   </script>
 
   <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

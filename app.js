@@ -638,7 +638,7 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
 
     if (!user) {
       await logActivity(null, 'Login failed', `Invalid number or password for ${studentNumber}`);
-      return res.status(400).json({ message: 'Invalid student number or password' });
+      return res.send('<script>alert("Invalid student number or password."); window.history.back();</script>');
     }
 
     const iv = Buffer.from(user.iv, 'hex');
@@ -650,13 +650,18 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
       decryptedPassword = decipher.update(user.password, 'hex', 'utf8');
       decryptedPassword += decipher.final('utf8');
     } catch (err) {
-      return res.status(400).json({ message: 'Failed to decrypt password' });
+      return res.send('<script>alert("Failed to decrypt password."); window.history.back();</script>');
     }
 
     if (decryptedPassword === password) {
       if (user.accountType === 'admin' && user.twoFactorEnabled) {
         if (!token) {
-          return res.status(200).json({ message: '2FA required' });
+          return res.send(`
+            <script>
+              alert("2FA required. Please enter your 2FA code.");
+              window.location.href = "/login?2fa=true";
+            </script>
+          `);
         }
 
         const verified = speakeasy.totp.verify({
@@ -667,48 +672,40 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
         });
 
         if (!verified) {
-          return res.status(400).json({ message: 'Invalid 2FA token' });
+          return res.send('<script>alert("Invalid 2FA token."); window.history.back();</script>');
         }
       }
 
       req.session.user = user;
 
-      let redirectUrl = '';
-      let action = '';
-
       if (user.accountType === 'student') {
         if (!user.passwordChanged) {
-          redirectUrl = '../change_password/index.html';
-          action = 'Student redirected to change password page';
-          
+          await logActivity(user._id, 'Redirected to change password', `User ${user.studentNumber} needs to change password`);
+          return res.redirect('../change_password/index.html');
         } else {
-          
-          redirectUrl = '/student/yearbooks';
-          action = 'Logged in as student';
+          await logActivity(user._id, 'Logged in as student', `User ${user.studentNumber} logged in successfully`);
+          return res.redirect('/student/yearbooks');
         }
-        yearbooks();
       } else if (user.accountType === 'admin') {
-        redirectUrl = '/admin/yearbooks';
-        action = 'Logged in as admin';
-        yearbooks();
+        await logActivity(user._id, 'Logged in as admin', `User ${user.studentNumber} logged in successfully`);
+        return res.redirect('/admin/yearbooks');
       } else if (user.accountType === 'committee') {
-        redirectUrl = '/comittee/yearbooks';
-        action = 'Logged in as committee';
-        yearbooks();
+        await logActivity(user._id, 'Logged in as committee', `User ${user.studentNumber} logged in successfully`);
+        return res.redirect('/committee/yearbooks');
       }
-
-      await logActivity(user._id, action, `User ${user.studentNumber} logged in as ${user.accountType}`);
-      return res.status(200).json({ message: 'Login successful', redirectUrl: redirectUrl });
     } else {
-      await logActivity(user._id, 'Login failed', `User ${user.studentNumber} Invalid student number or password`);
-      return res.status(400).json({ message: 'Invalid student number or password' });
+      await logActivity(user._id, 'Login failed', `User ${user.studentNumber} provided an invalid password`);
+      return res.send('<script>alert("Invalid student number or password."); window.history.back();</script>');
     }
   } catch (error) {
     console.error("Error logging in:", error);
     await logActivity(null, 'Error logging in', error.message);
-    return res.status(500).json({ message: 'Error logging in' });
+    return res.send('<script>alert("Error logging in. Please try again later."); window.history.back();</script>');
   }
 });
+
+
+
 
 app.post('/logout', cors(corsOptions), (req, res) => {
   
