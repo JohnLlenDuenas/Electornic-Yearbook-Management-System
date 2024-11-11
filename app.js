@@ -26,7 +26,7 @@ const socketIo = require('socket.io');
 const lastLogTimestamp = new Date();
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
-const puppeteer = require('puppeteer');
+
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 
@@ -630,7 +630,7 @@ app.post('/verify-2fa', async (req, res) => {
   }
 });
 
-app.post('/loginroute', async (req, res) => {
+app.post('/loginroute', cors(corsOptions), async (req, res) => {
   const { studentNumber, password, token } = req.body;
 
   try {
@@ -696,7 +696,7 @@ app.post('/loginroute', async (req, res) => {
         action = 'Logged in as committee';
         yearbooks();
       }
-      console.log(redirectUrl);
+
       await logActivity(user._id, action, `User ${user.studentNumber} logged in as ${user.accountType}`);
       return res.status(200).json({ message: 'Login successful', redirectUrl: redirectUrl });
     } else {
@@ -1105,10 +1105,10 @@ app.get('/studentyearbook/:id', async (req, res) => {
 });
 
 const connection  = mysql.createPool({
-  host: 'sql304.infinityfree.com',
-  user: 'if0_37683008',
-  password: 'rfh0Ubnzil',
-  database: 'if0_37683008_yearbook_db',
+  host: 'localhost',
+  user: 'root',
+  password: null,
+  database: 'yearbook_db',
 });
 
 const WORDPRESS_URL = 'https://eybms.infinityfreeapp.com/wordpress/wp-json/wp/v2/media';
@@ -1291,98 +1291,6 @@ async function yearbooks() {
     }
   }
 }
-
-
-/*async function fetchYearbooks() {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  const page = await browser.newPage();
-  await page.goto('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks');
-  
-  const data = await page.evaluate(() => document.body.innerText);
-  await browser.close();
-  
-  return JSON.parse(data);
-}
-
-async function yearbooks() {
-  try {
-    const fetchedYearbooks = await fetchYearbooks();
-
-    // Check if fetchedYearbooks is an array
-    if (!Array.isArray(fetchedYearbooks)) {
-      console.error("Error: fetchedYearbooks is not an array", fetchedYearbooks);
-      return;
-    }
-
-    const existingYearbooks = await Yearbook.find({});
-    const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
-
-    for (const existingYearbook of existingYearbooks) {
-      if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
-        await Yearbook.deleteOne({ id: existingYearbook.id });
-      }
-    }
-
-    for (const yearbook of fetchedYearbooks) {
-      const existing = await Yearbook.findOne({ id: yearbook.id });
-
-      await Yearbook.updateOne(
-        { id: yearbook.id },
-        {
-          title: yearbook.title,
-          thumbnail: yearbook.thumbnail,
-        },
-        { upsert: true } 
-      );
-
-      if (!existing) {
-        await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching yearbooks:', error);
-  }
-}*/
-
-/*async function yearbooks() {
-  const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks', cors(corsOptions));
-  const fetchedYearbooks = response.data;
-
-  // Check if fetchedYearbooks is an array
-  if (!Array.isArray(fetchedYearbooks)) {
-    console.error("Error: fetchedYearbooks is not an array", fetchedYearbooks);
-    return;
-  }
-
-  const existingYearbooks = await Yearbook.find({});
-  const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
-
-  for (const existingYearbook of existingYearbooks) {
-    if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
-      await Yearbook.deleteOne({ id: existingYearbook.id });
-    }
-  }
-
-  for (const yearbook of fetchedYearbooks) {
-    const existing = await Yearbook.findOne({ id: yearbook.id });
-
-    await Yearbook.updateOne(
-      { id: yearbook.id },
-      {
-        title: yearbook.title,
-        thumbnail: yearbook.thumbnail,
-      },
-      { upsert: true } 
-    );
-
-    if (!existing) {
-      await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
-    }
-  }
-}*/
 
 
 app.listen(port, () => {
