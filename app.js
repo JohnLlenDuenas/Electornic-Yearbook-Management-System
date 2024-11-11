@@ -696,7 +696,7 @@ app.post('/loginroute', async (req, res) => {
         action = 'Logged in as committee';
         yearbooks();
       }
-
+      console.log(redirectUrl);
       await logActivity(user._id, action, `User ${user.studentNumber} logged in as ${user.accountType}`);
       return res.status(200).json({ message: 'Login successful', redirectUrl: redirectUrl });
     } else {
