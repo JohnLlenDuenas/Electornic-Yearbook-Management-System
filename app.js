@@ -1105,10 +1105,10 @@ app.get('/studentyearbook/:id', async (req, res) => {
 });
 
 const connection  = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: null,
-  database: 'yearbook_db',
+  host: 'sql304.infinityfree.com',
+  user: 'if0_37683008',
+  password: 'rfh0Ubnzil',
+  database: 'if0_37683008_yearbook_db',
 });
 
 const WORDPRESS_URL = 'https://eybms.infinityfreeapp.com/wordpress/wp-json/wp/v2/media';
