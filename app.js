@@ -837,7 +837,7 @@ app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['
     console.log("Session in /admin/yearbooks:", req.session);
     yearbooks();
     const onlineUsers = await countOnlineUsers();
-    const user = req.session.user;
+    //const user = req.session.user;
     const yearbook = await Yearbook.find();
     const mostViewedYearbooks = await Yearbook.find({ status: 'published' })
       .sort({ views: -1 })
@@ -846,7 +846,7 @@ app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['
     const pendingYearbooks = await Yearbook.find({ status: 'pending' });
     const calendar = await Yearbook.find({ consentDeadline: { $exists: true } });
 
-    const userId = req.session.user._id; 
+    /*const userId = req.session.user._id; 
     const accountType = req.session.user.accountType;
 
     const allowedActions = [
@@ -872,7 +872,7 @@ app.get('/admin/yearbooks', cors(corsOptions), checkAuthenticated, ensureRole(['
         log.viewedBy.push(userId);
         return log.save();
       }));
-    }
+    }*/
 
     res.render(path.join(__dirname, 'public', 'admin', 'index'), {
       activityLogs,
