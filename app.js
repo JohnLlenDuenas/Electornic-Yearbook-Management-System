@@ -1258,40 +1258,24 @@ async function yearbooks() {
   try {
     const apiUrl = 'https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks';
 
-    fetch(apiUrl, {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'Origin': 'https://electornic-yearbook-management-system.vercel.app/'
+        'Origin': 'https://electornic-yearbook-management-system.vercel.app', // Frontend origin
+        'Content-Type': 'application/json'
       }
-    })
-      .then(async response => {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          return response.json();
-        } else {
-          const text = await response.text();
-          console.error("Received non-JSON response:", text);
-          throw new Error("Non-JSON response received");
-        }
-      })
-      .then(data => console.log("Data:", data))
-      .catch(error => console.error("Error:", error));
+    });
 
-    const response = await axios.get(
-      apiUrl, 
-      cors(corsOptions)
-    );
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("Received non-JSON response:", text);
+      throw new Error(`Request failed with status ${response.status}`);
+    }
 
-    const fetchedYearbooks = response.data;
+    const fetchedYearbooks = await response.json();
 
     // Log response data for debugging
     console.log("Fetched data:", fetchedYearbooks);
-
-    // Check if fetchedYearbooks is an array
-    if (!Array.isArray(fetchedYearbooks)) {
-      console.error("Error: fetchedYearbooks is not an array", fetchedYearbooks);
-      return;
-    }
 
     const existingYearbooks = await Yearbook.find({});
     const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
@@ -1322,6 +1306,7 @@ async function yearbooks() {
     console.error("Error fetching yearbooks:", error.message);
   }
 }
+
 
 /*async function yearbooks() {
   try {
