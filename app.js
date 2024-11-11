@@ -640,9 +640,9 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
   const { studentNumber, password, token } = req.body;
 
   try {
-    console.log("Starting login process...");
-    const user = await Student.findOne({ studentNumber }).maxTimeMS(5000);
-    console.log("User found:", user ? user._id : "No user found");
+    console.log("Starting login process at:", new Date());
+    const user = await Student.findOne({ studentNumber }).maxTimeMS(5000); // Timeout of 5 seconds
+    console.log("User lookup complete at:", new Date(), "User found:", user ? user._id : "No user found");
 
     if (!user) {
       await logActivity(null, 'Login failed', `Invalid number or password for ${studentNumber}`);
@@ -687,8 +687,6 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
       console.log("Session before setting user:", req.session);
       req.session.user = user.toObject();
       console.log("Session after setting user:", req.session);
-      
-      console.log("User successfully set in session:", req.session.user);
 
       if (user.accountType === 'student') {
         if (!user.passwordChanged) {
@@ -700,10 +698,7 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
         }
       } else if (user.accountType === 'admin') {
         await logActivity(user._id, 'Logged in as admin', `User ${user.studentNumber} logged in successfully`);
-        console.log("User successfully set in session:", req.session.user);
-
         return res.redirect('/admin/yearbooks');
-        
       } else if (user.accountType === 'committee') {
         await logActivity(user._id, 'Logged in as committee', `User ${user.studentNumber} logged in successfully`);
         return res.redirect('/committee/yearbooks');
@@ -718,6 +713,7 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
     return res.send('<script>alert("Error logging in. Please try again later."); window.history.back();</script>');
   }
 });
+
 
 
 
