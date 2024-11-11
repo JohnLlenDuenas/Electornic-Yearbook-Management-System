@@ -641,7 +641,7 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
 
   try {
     console.log("Starting login process...");
-    const user = await Student.findOne({ studentNumber });
+    const user = await Student.findOne({ studentNumber }).maxTimeMS(5000);
     console.log("User found:", user ? user._id : "No user found");
 
     if (!user) {
