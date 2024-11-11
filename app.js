@@ -70,11 +70,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const uri = "mongodb+srv://vercel-admin-user:7U61tFTX0WPtinIJ@cluster0.pgaelxg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 mongoose.connect(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
-  connectTimeoutMS: 10000, // 10 seconds
+  connectTimeoutMS: 10000
 })
   .then(async () => {
     console.log('Connected to MongoDB');
@@ -642,6 +640,11 @@ app.post('/verify-2fa', async (req, res) => {
 });
 
 app.post('/loginroute', cors(corsOptions), async (req, res) => {
+
+  if (mongoose.connection.readyState !== 1) {  // 1 means connected
+    console.error("MongoDB is not connected");
+    return res.send('<script>alert("Database connection error."); window.history.back();</script>');
+  }
   const { studentNumber, password, token } = req.body;
 
   try {
