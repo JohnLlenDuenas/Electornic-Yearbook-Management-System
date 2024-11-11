@@ -641,6 +641,40 @@ app.post('/verify-2fa', async (req, res) => {
 
 app.post('/loginroute', cors(corsOptions), async (req, res) => {
 
+
+  const uri = "mongodb+srv://vercel-admin-user:johnllenvercel@cluster0.pgaelxg.mongodb.net/EYBMS_DB?retryWrites=true&w=majority&appName=Cluster0";
+
+  mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 10000
+  })
+    .then(async () => {
+      console.log('Connected to MongoDB');
+      try {
+        await mongoose.connection.db.admin().ping();
+        console.log('MongoDB ping successful');
+      } catch (err) {
+        console.error('MongoDB ping failed:', err);
+      }
+    })
+    .catch(err => {
+      console.error('Error connecting to MongoDB:', err);
+    });
+
+
+    app.use(session({
+      secret: '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b',
+      resave: false,
+      saveUninitialized: false,
+      store: MongoStore.create({ mongoUrl: 'mongodb+srv://vercel-admin-user:johnllenvercel@cluster0.pgaelxg.mongodb.net/EYBMS_DB?retryWrites=true&w=majority&appName=Cluster0' }),
+      rolling: true,
+      cookie: {
+        maxAge: 15 * 60 * 1000,
+        secure: process.env.NODE_ENV === 'production',
+      }
+    }));
+    
     if (mongoose.connection.readyState !== 1) {  // 1 means connected
     console.error("MongoDB is not connected");
     return res.send('<script>alert("Database connection error."); window.history.back();</script>');
