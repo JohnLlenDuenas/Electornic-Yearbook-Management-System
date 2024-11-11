@@ -74,15 +74,20 @@ mongoose.connect(uri, {
   useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
-  connectTimeoutMS: 1000, // Attempt to connect for 10 seconds
+  connectTimeoutMS: 10000, // 10 seconds
 })
-  .then(() => {
+  .then(async () => {
     console.log('Connected to MongoDB');
+    try {
+      await mongoose.connection.db.admin().ping();
+      console.log('MongoDB ping successful');
+    } catch (err) {
+      console.error('MongoDB ping failed:', err);
+    }
   })
   .catch(err => {
-    console.error('Error connecting to MongoDB', err);
+    console.error('Error connecting to MongoDB:', err);
   });
-
 
 app.use(express.json());
 
