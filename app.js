@@ -26,7 +26,7 @@ const socketIo = require('socket.io');
 const lastLogTimestamp = new Date();
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
-
+const puppeteer = require('puppeteer');
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 
@@ -1254,14 +1254,69 @@ fetchFlipbooks().then(flipbooks => {
   console.log(flipbooks);
 });
 
-
+async function fetchYearbooks() {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks');
+  
+  // Wait for the JSON response by capturing the page's content
+  const data = await page.evaluate(() => document.body.innerText);
+  await browser.close();
+  
+  return JSON.parse(data);
+}
 async function yearbooks() {
-  const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks',cors(corsOptions));
+  try {
+    const fetchedYearbooks = await fetchYearbooks();
+
+    // Check if fetchedYearbooks is an array
+    if (!Array.isArray(fetchedYearbooks)) {
+      console.error("Error: fetchedYearbooks is not an array", fetchedYearbooks);
+      return;
+    }
+
+    const existingYearbooks = await Yearbook.find({});
+    const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
+
+    for (const existingYearbook of existingYearbooks) {
+      if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
+        await Yearbook.deleteOne({ id: existingYearbook.id });
+      }
+    }
+
+    for (const yearbook of fetchedYearbooks) {
+      const existing = await Yearbook.findOne({ id: yearbook.id });
+
+      await Yearbook.updateOne(
+        { id: yearbook.id },
+        {
+          title: yearbook.title,
+          thumbnail: yearbook.thumbnail,
+        },
+        { upsert: true } 
+      );
+
+      if (!existing) {
+        await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching yearbooks:', error);
+  }
+}
+
+/*async function yearbooks() {
+  const response = await axios.get('https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks', cors(corsOptions));
   const fetchedYearbooks = response.data;
 
-  const existingYearbooks = await Yearbook.find({});
+  // Check if fetchedYearbooks is an array
+  if (!Array.isArray(fetchedYearbooks)) {
+    console.error("Error: fetchedYearbooks is not an array", fetchedYearbooks);
+    return;
+  }
 
- const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
+  const existingYearbooks = await Yearbook.find({});
+  const fetchedYearbookIds = new Set(fetchedYearbooks.map((yearbook) => parseInt(yearbook.id)));
 
   for (const existingYearbook of existingYearbooks) {
     if (!fetchedYearbookIds.has(parseInt(existingYearbook.id))) {
@@ -1272,7 +1327,7 @@ async function yearbooks() {
   for (const yearbook of fetchedYearbooks) {
     const existing = await Yearbook.findOne({ id: yearbook.id });
 
-    const result = await Yearbook.updateOne(
+    await Yearbook.updateOne(
       { id: yearbook.id },
       {
         title: yearbook.title,
@@ -1285,7 +1340,8 @@ async function yearbooks() {
       await logActivity(null, 'Yearbook', `Yearbook ${yearbook.id} has been added successfully`);
     }
   }
-}
+}*/
+
 
 app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`);
