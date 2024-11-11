@@ -1256,12 +1256,26 @@ fetchFlipbooks().then(flipbooks => {
 
 async function yearbooks() {
   try {
-    const apiUrl = 'https://cors-anywhere.herokuapp.com/https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks';
+    const apiUrl = 'https://corsproxy.io/?https://eybms.infinityfreeapp.com/wordpress/wp-json/myplugin/v1/flipbooks';
 
-    fetch(apiUrl)
-      .then(response => response.json())
-      .then(data => console.log(data))
-      .catch(error => console.error('Error:', error));
+    fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Origin': 'https://electornic-yearbook-management-system.vercel.app/'
+      }
+    })
+      .then(async response => {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json();
+        } else {
+          const text = await response.text();
+          console.error("Received non-JSON response:", text);
+          throw new Error("Non-JSON response received");
+        }
+      })
+      .then(data => console.log("Data:", data))
+      .catch(error => console.error("Error:", error));
 
     const response = await axios.get(
       apiUrl, 
