@@ -642,7 +642,7 @@ app.post('/verify-2fa', async (req, res) => {
 app.post('/loginroute', cors(corsOptions), async (req, res) => {
 
 
-  const uri = proccess.env.MONGODB_URI;
+  const uri = "mongodb+srv://vercel-admin-user:johnllenvercel@cluster0.pgaelxg.mongodb.net/EYBMS_DB?retryWrites=true&w=majority&appName=Cluster0";
 
   mongoose.connect(uri, {
     serverSelectionTimeoutMS: 5000,
@@ -667,14 +667,14 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
       secret: '3f8d9a7b6c2e1d4f5a8b9c7d6e2f1a3b',
       resave: false,
       saveUninitialized: false,
-      store: MongoStore.create({ mongoUrl: proccess.env.MONGODB_URI }),
+      store: MongoStore.create({ mongoUrl: 'mongodb+srv://vercel-admin-user:johnllenvercel@cluster0.pgaelxg.mongodb.net/EYBMS_DB?retryWrites=true&w=majority&appName=Cluster0' }),
       rolling: true,
       cookie: {
         maxAge: 15 * 60 * 1000,
         secure: process.env.NODE_ENV === 'production',
       }
     }));
-
+    
     if (mongoose.connection.readyState !== 1) {  // 1 means connected
     console.error("MongoDB is not connected");
     return res.send('<script>alert("Database connection error."); window.history.back();</script>');
