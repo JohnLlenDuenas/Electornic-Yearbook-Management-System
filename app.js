@@ -640,7 +640,9 @@ app.post('/loginroute', cors(corsOptions), async (req, res) => {
   const { studentNumber, password, token } = req.body;
 
   try {
+    console.log("Starting login process...");
     const user = await Student.findOne({ studentNumber });
+    console.log("User found:", user ? user._id : "No user found");
 
     if (!user) {
       await logActivity(null, 'Login failed', `Invalid number or password for ${studentNumber}`);
